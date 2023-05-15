@@ -644,27 +644,39 @@ contract WinnerTakesAll {
         _;
     }
 
+    /// @dev Creates new rounds.
+    /// @param _numberOfRounds The number of rounds to create.
     function createNewRounds(uint256 _numberOfRounds) external {
         for (uint256 i = 0; i < _numberOfRounds; i++) {
             rounds.push();
         }
     }
 
+    /// @dev Set the reward at a specific round.
+    /// @param _roundIndex The index of the round concerned by the reward.
     function setRewardsAtRound(uint256 _roundIndex) external payable onlyOwner {
         require(rounds[_roundIndex].rewards == 0);
         rounds[_roundIndex].rewards = msg.value;
     }
 
+    /// @dev Allows the participation of a set of addresses for a specific round.
+    /// @param _roundIndex The index of the round concerned.
+    /// @param _recipients The set of addresses allowed to participate.
     function setRewardsAtRoundfor(uint256 _roundIndex, address[] calldata _recipients) external onlyOwner {
         for (uint256 i; i < _recipients.length; i++) {
             rounds[_roundIndex].isAllowed[_recipients[i]] = true;
         }
     }
 
+    /// @dev Checks if an address can participated to this round.
+    /// @param _roundIndex The index of the round concerned.
+    /// @param _recipient The address whose authorisation is to be checked.
     function isAllowedAt(uint256 _roundIndex, address _recipient) external view returns (bool) {
         return rounds[_roundIndex].isAllowed[_recipient];
     }
 
+    /// @dev Withdraws rewards of a round.
+    /// @param _roundIndex The index of the round concerned.
     function withdrawRewards(uint256 _roundIndex) external {
         require(rounds[_roundIndex].isAllowed[msg.sender]);
         uint256 amount = rounds[_roundIndex].rewards;
@@ -672,10 +684,12 @@ contract WinnerTakesAll {
         payable(msg.sender).transfer(amount);
     }
 
+    /// @dev Delete all the rounds created.
     function clearRounds() external onlyOwner {
         delete rounds;
     }
 
+    /// @dev WithDraws all the ethers to owner's address.
     function withrawETH() external onlyOwner {
         payable(msg.sender).transfer(address(this).balance);
     }
