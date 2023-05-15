@@ -662,15 +662,15 @@ contract WinnerTakesAll {
     /// @dev Allows the participation of a set of addresses for a specific round.
     /// @param _roundIndex The index of the round concerned.
     /// @param _recipients The set of addresses allowed to participate.
-    function setRewardsAtRoundfor(uint256 _roundIndex, address[] calldata _recipients) external onlyOwner {
+    function setRewardsAtRoundFor(uint256 _roundIndex, address[] calldata _recipients) external onlyOwner {
         for (uint256 i; i < _recipients.length; i++) {
             rounds[_roundIndex].isAllowed[_recipients[i]] = true;
         }
     }
 
-    /// @dev Checks if an address can participated to this round.
-    /// @param _roundIndex The index of the round concerned.
-    /// @param _recipient The address whose authorisation is to be checked.
+    /// @dev Checks if an address can participate in this round.
+    /// @param _roundIndex The index of the round to be checked.
+    /// @param _recipient The address whose authorization is to be checked.
     function isAllowedAt(uint256 _roundIndex, address _recipient) external view returns (bool) {
         return rounds[_roundIndex].isAllowed[_recipient];
     }
@@ -689,8 +689,8 @@ contract WinnerTakesAll {
         delete rounds;
     }
 
-    /// @dev WithDraws all the ethers to owner's address.
-    function withrawETH() external onlyOwner {
+    /// @dev Withdraws all the ethers to owner's address.
+    function withdrawETH() external onlyOwner {
         payable(msg.sender).transfer(address(this).balance);
     }
 }
