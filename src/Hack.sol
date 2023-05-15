@@ -27,8 +27,9 @@ contract Store {
         for (uint256 i; i < safes.length; ++i) {
             Safe storage safe = safes[i];
             if (safe.owner == msg.sender && safe.amount != 0) {
-                payable(msg.sender).transfer(safe.amount);
+                uint256 amount = safe.amount;
                 safe.amount = 0;
+                payable(msg.sender).transfer(amount);
             }
         }
     }
