@@ -6,7 +6,7 @@ pragma solidity ^0.8.0;
 // You are required to find vulnerabilities where an attacker harms someone else.
 // Being able to destroy your own stuff is not a vulnerability and should be dealt at the interface level.
 
-/// Exercise 1 ///
+/* Exercise 1 */
 
 /// @dev Contract to store and redeem money.
 contract Store {
@@ -34,7 +34,7 @@ contract Store {
     }
 }
 
-/// Exercise 2 ///
+/* Exercise 2 */
 
 /// @dev You can buy some objects.
 ///      Further purchases are discounted.
@@ -56,7 +56,7 @@ contract DiscountedBuy {
     }
 }
 
-/// Exercise 3 ///
+/* Exercise 3 */
 
 /// @dev One party chooses Head or Tail and sends 1 ETH.
 ///      The next party sends 1 ETH and tries to guess what the first party chose.
@@ -91,7 +91,7 @@ contract HeadOrTail {
     }
 }
 
-/// Exercise 4 ///
+/* Exercise 4 */
 
 /// @dev Contract managing the storage and the redemption of ETH.
 contract Vault {
@@ -109,7 +109,7 @@ contract Vault {
     }
 }
 
-/// Exercise 5 ///
+/* Exercise 5 */
 
 /// @dev One party chooses Head or Tail and sends 1 ETH.
 ///      The next party sends 1 ETH and tries to guess what the first party chose.
@@ -163,7 +163,7 @@ contract HeadTail {
     }
 }
 
-/// Exercise 6 ///
+/* Exercise 6 */
 
 /// @dev Contract for a simple token that can be sent.
 contract SimpleToken {
@@ -185,7 +185,7 @@ contract SimpleToken {
     }
 }
 
-/// Exercise 7 ///
+/* Exercise 7 */
 
 /// @dev Contract for a simple token that can be exchanged through a bonded curve and sent.
 /// @notice We assume that order frontrunning is fine.
@@ -218,7 +218,7 @@ contract LinearBondedCurve {
     }
 }
 
-/// Exercise 8 ///
+/* Exercise 8 */
 
 /// @dev Contract to create coffers, deposit and withdraw money from them.
 contract Coffers {
@@ -267,7 +267,7 @@ contract Coffers {
     }
 }
 
-/// Exercise 9 ///
+/* Exercise 9 */
 
 /// @dev Contract for simple coffer to deposit to and withdraw from.
 contract CommonCoffers {
@@ -297,7 +297,7 @@ contract CommonCoffers {
     }
 }
 
-/// Exercise 10 ///
+/* Exercise 10 */
 
 /// @dev Two parties deposit on a particular side and the owner decides which side is correct.
 ///      Owner's decision is based on some external factors irrelevant to this contract.
@@ -370,7 +370,7 @@ contract Resolver {
     }
 }
 
-/// Exercise 11 ///
+/* Exercise 11*/
 
 /// @dev Contract for users to register. It will be used by other contracts to attach rights to those users (rights will be linked to user IDs).
 ///      Note that simply being registered does not confer any right.
@@ -406,7 +406,7 @@ contract Registry {
     }
 }
 
-/// Exercise 12 ///
+/* Exercise 12 */
 
 /// @dev A Token contract that keeps a record of the users past balances.
 contract SnapShotToken {
@@ -451,7 +451,7 @@ contract SnapShotToken {
     }
 }
 
-/// Exercise 13 ///
+/* Exercise 13 */
 
 /// @dev Each player tries to guess the average of all the player's revealed answers combined.
 ///      They must pay 1 ETH to play.
@@ -591,7 +591,7 @@ contract GuessTheAverage {
     }
 }
 
-/// Exercise 14 ///
+/* Exercise 14 */
 
 /// @dev This is a piggy bank.
 ///      The owner can deposit 1 ETH whenever he wants.
@@ -618,7 +618,7 @@ contract PiggyBank {
     }
 }
 
-/// Exercise 15 ///
+/* Exercise 15 */
 
 /// @dev This is a game where an Owner considered as TRUSTED can set rounds with rewards.
 ///      The Owner allows several users to compete for the rewards. The fastest user gets all the rewards.
