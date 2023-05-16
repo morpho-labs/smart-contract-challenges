@@ -614,7 +614,7 @@ contract PiggyBank {
     /// @dev Withdraws the entire smart contract balance
     function withdrawAll() public {
         require(msg.sender == owner && address(this).balance == 10 ether);
-        payable(owner).send(address(this).balance);
+        payable(owner).transfer(address(this).balance);
     }
 }
 
