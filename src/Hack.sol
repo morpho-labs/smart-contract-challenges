@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-// These contracts are examples of contracts with bugs and vulnerabilities in order to practice your hacking skills.
-// DO NOT USE THEM OR GET INSPIRATION FROM THEM TO MAKE CODE USED IN PRODUCTION
+// These contracts are examples of contracts with bugs and vulnerabilities to practice your hacking skills.
+// DO NOT USE THEM OR GET INSPIRATION FROM THEM TO MAKE CODE USED IN PRODUCTION.
 // You are required to find vulnerabilities where an attacker harms someone else.
-// Being able to destroy your own stuff is not a vulnerability and should be dealt at the interface level.
+// Being able to destroy your own stuff is not a vulnerability and should be dealt with at the interface level.
 
-/// Exercice 1 ///
+/* Exercise 1 */
 
 /// @dev Contract to store and redeem money.
 contract Store {
@@ -22,23 +22,24 @@ contract Store {
         safes.push(Safe({owner: msg.sender, amount: msg.value}));
     }
 
-    /// @dev Takes back all the amount stored.
+    /// @dev Takes back all the amount stored by the sender.
     function take() public {
         for (uint256 i; i < safes.length; ++i) {
             Safe storage safe = safes[i];
             if (safe.owner == msg.sender && safe.amount != 0) {
-                payable(msg.sender).transfer(safe.amount);
+                uint256 amount = safe.amount;
                 safe.amount = 0;
+                payable(msg.sender).transfer(amount);
             }
         }
     }
 }
 
-/// Exercice 2 ///
+/* Exercise 2 */
 
-/// @dev You can buy some object.
+/// @dev You can buy some objects.
 ///      Further purchases are discounted.
-///      You need to pay basePrice / (1 + objectBought), where objectBought is the number of object you previously bought.
+///      You need to pay basePrice / (1 + objectBought), where objectBought is the number of objects you previously bought.
 contract DiscountedBuy {
     uint256 public basePrice = 1 ether;
     mapping(address => uint256) public objectBought;
@@ -56,19 +57,19 @@ contract DiscountedBuy {
     }
 }
 
-/// Exercice 3 ///
+/* Exercise 3 */
 
-/// @dev You choose Head or Tail and send 1 ETH.
-///      The next party send 1 ETH and try to guess what you chose.
-///      If it succeed it gets 2 ETH, else you get 2 ETH.
+/// @dev One party chooses Head or Tail and sends 1 ETH.
+///      The next party sends 1 ETH and tries to guess what the first party chose.
+///      If they succeed, they get 2 ETH, else the first party gets 2 ETH.
 contract HeadOrTail {
-    bool public chosen; // True if head/tail has been chosen.
+    bool public chosen; // True if the choice has been made.
     bool public lastChoiceHead; // True if the choice is head.
     address payable public lastParty; // The last party who chose.
 
     /// @dev Must be sent 1 ETH.
-    ///      Choose head or tail to be guessed by the other player.
-    /// @param _chooseHead True if head was chosen, false if tail was chosen.
+    ///      Choose Head or Tail to be guessed by the other player.
+    /// @param _chooseHead True if Head was chosen, false if Tail was chosen.
     function choose(bool _chooseHead) public payable {
         require(!chosen);
         require(msg.value == 1 ether);
@@ -78,6 +79,8 @@ contract HeadOrTail {
         lastParty = payable(msg.sender);
     }
 
+    /// @dev Guesses the choice of the first party and resolves the Head or Tail Game.
+    /// @param _guessHead The guess (Head or Tail) of the opposite party.
     function guess(bool _guessHead) public payable {
         require(chosen);
         require(msg.value == 1 ether);
@@ -89,25 +92,25 @@ contract HeadOrTail {
     }
 }
 
-/// Exercice 4 ///
+/* Exercise 4 */
 
-/// @dev You can store ETH in this contract and redeem them.
+/// @dev Contract managing the storage and the redemption of ETH.
 contract Vault {
     mapping(address => uint256) public balances;
 
-    /// @dev Stores ETH in the contract.
+    /// @dev Stores the ETH of the sender in the contract.
     function store() public payable {
         balances[msg.sender] += msg.value;
     }
 
-    /// @dev Redeems your ETH.
+    /// @dev Redeems the ETH of the sender in the contract.
     function redeem() public {
         msg.sender.call{value: balances[msg.sender]}("");
         balances[msg.sender] = 0;
     }
 }
 
-/// Exercice 5 ///
+/* Exercise 5 */
 
 /// @dev Contract for locking and unlocking funds using a commitment and password.
 contract Locker {
@@ -129,11 +132,13 @@ contract Locker {
     }
 }
 
-/// Exercice 6 ///
+/* Exercise 6 */
 
-/// @dev Simple token you can buy and send.
+/// @dev Contract for a simple token that can be sent.
 contract SimpleToken {
     mapping(address => int256) public balances;
+
+    /* CONSTRUCTOR */
 
     /// @dev Creator starts with all the tokens.
     constructor() {
@@ -149,9 +154,10 @@ contract SimpleToken {
     }
 }
 
-/// Exercice 7 ///
+/* Exercise 7 */
 
-/// @dev Simple token you can buy and send through a bonded curve. We assume that order frontrunning is fine.
+/// @dev Contract for a simple token that can be exchanged through a bonded curve and sent.
+/// @notice We assume that order frontrunning is fine.
 contract LinearBondedCurve {
     mapping(address => uint256) public balances;
     uint256 public totalSupply;
@@ -181,9 +187,9 @@ contract LinearBondedCurve {
     }
 }
 
-/// Exercice 8 ///
+/* Exercise 8 */
 
-/// @dev You can create coffers, deposit money and withdraw from them.
+/// @dev Contract to create coffers, deposit and withdraw money from them.
 contract Coffers {
     struct Coffer {
         uint256 nbSlots;
@@ -200,16 +206,16 @@ contract Coffers {
         coffer.nbSlots = _slots;
     }
 
-    /// @dev Deposits money in one's coffer slot.
-    /// @param _owner The coffer to deposit money on.
-    /// @param _slot The slot to deposit money.
+    /// @dev Deposits money into one's coffer slot.
+    /// @param _owner The owner of the coffer.
+    /// @param _slot The slot to deposit money into.
     function deposit(address _owner, uint256 _slot) external payable {
         Coffer storage coffer = coffers[_owner];
         require(_slot < coffer.nbSlots);
         coffer.slots[_slot] += msg.value;
     }
 
-    /// @dev Withdraws all of the money of one's coffer slot.
+    /// @dev Withdraws all the money from one's coffer slot.
     /// @param _slot The slot to withdraw money from.
     function withdraw(uint256 _slot) external {
         Coffer storage coffer = coffers[msg.sender];
@@ -230,14 +236,14 @@ contract Coffers {
     }
 }
 
-/// Exercice 9 ///
+/* Exercise 9 */
 
-/// @dev Simple coffer you deposit to and withdraw from.
+/// @dev Contract for simple coffer to deposit to and withdraw from.
 contract CommonCoffers {
     mapping(address => uint256) public coffers;
     uint256 public scalingFactor;
 
-    /// @dev Deposits money in one's coffer slot.
+    /// @dev Deposits money in one's coffer.
     /// @param _owner The coffer to deposit money on.
     function deposit(address _owner) external payable {
         if (scalingFactor != 0) {
@@ -250,8 +256,8 @@ contract CommonCoffers {
         }
     }
 
-    /// @dev Withdraws all of the money of one's coffer slot.
-    /// @param _amount The slot to withdraw money from.
+    /// @dev Withdraws all of the money from one's coffer.
+    /// @param _amount The amount to withdraw from one's coffer.
     function withdraw(uint256 _amount) external {
         uint256 toRemove = (scalingFactor * _amount) / address(this).balance;
         coffers[msg.sender] -= toRemove;
@@ -260,9 +266,9 @@ contract CommonCoffers {
     }
 }
 
-/// Exercice 10 ///
+/* Exercise 10 */
 
-/// @dev Two parties make a deposit for a particular side and the owner decides which side is correct.
+/// @dev Two parties deposit on a particular side and the owner decides which side is correct.
 ///      Owner's decision is based on some external factors irrelevant to this contract.
 contract Resolver {
     enum Side {
@@ -280,15 +286,16 @@ contract Resolver {
 
     uint256[2] public partyDeposits;
 
-    /// @dev Constructor.
+    /* CONSTRUCTOR */
+
     /// @param _baseDeposit The deposit a party has to pay. Note that it is greater than the reward.
     constructor(uint256 _baseDeposit) payable {
         reward = msg.value;
         baseDeposit = _baseDeposit;
     }
 
-    /// @dev Makes a deposit as one of the parties.
-    /// @param _side A party to make a deposit as.
+    /// @dev Makes a deposit to one of the sides.
+    /// @param _side The side chosen by the party.
     function deposit(Side _side) public payable {
         require(!declared, "The winner is already declared");
         require(sides[uint256(_side)] == address(0), "Side already paid");
@@ -298,8 +305,8 @@ contract Resolver {
     }
 
     /// @dev Declares the winner as an owner.
-    ///      Note that in case no one funded for the winner when the owner makes its transaction, having someone else deposit to get the reward is fine and doesn't affect the mecanism.
-    /// @param _winner The party that is eligible to a reward according to owner.
+    ///      Note that in case no one funded for the winner side when the owner makes its transaction, having someone else deposit to get the reward is fine and doesn't affect the mechanism.
+    /// @param _winner The side that is eligible to a reward according to owner.
     function declareWinner(Side _winner) public {
         require(msg.sender == owner, "Only owner allowed");
         require(!declared, "Winner already declared");
@@ -307,7 +314,7 @@ contract Resolver {
         winner = _winner;
     }
 
-    /// @dev Pays the reward to the winner. Reimburse the surplus deposit for both parties if there was one.
+    /// @dev Pays the reward to the winner. Reimburses the surplus deposit for both parties if there was one.
     function payReward() public {
         require(declared, "The winner is not declared");
         uint256 depositA = partyDeposits[0];
@@ -316,7 +323,7 @@ contract Resolver {
         partyDeposits[0] = 0;
         partyDeposits[1] = 0;
 
-        // Pay the winner. Note that if no one put a deposit for the winning side, the reward will be burnt.
+        // Pays the winner. Note that if no one put a deposit for the winning side, the reward will be burnt.
         require(sides[uint256(winner)].send(reward), "Unsuccessful send");
 
         // Reimburse the surplus deposit if there was one.
@@ -332,7 +339,7 @@ contract Resolver {
     }
 }
 
-/// Exercice 11 ///
+/* Exercise 11*/
 
 /// @dev Contract for users to register. It will be used by other contracts to attach rights to those users (rights will be linked to user IDs).
 ///      Note that simply being registered does not confer any right.
@@ -368,7 +375,7 @@ contract Registry {
     }
 }
 
-/// Exercice 12 ///
+/* Exercise 12 */
 
 /// @dev A Token contract that keeps a record of the users past balances.
 contract SnapShotToken {
@@ -413,7 +420,7 @@ contract SnapShotToken {
     }
 }
 
-/// Exercice 13 ///
+/* Exercise 13 */
 
 /// @dev Each player tries to guess the average of all the player's revealed answers combined.
 ///      They must pay 1 ETH to play.
@@ -452,6 +459,8 @@ contract GuessTheAverage {
     mapping(address => Player) public players; // Maps an address to its respective Player status.
     mapping(uint256 => address) public indexToPlayer; // Maps a guess index to the player who made the guess.
 
+    /* CONSTRUCTOR */
+
     constructor(uint32 _commitDuration, uint32 _revealDuration) {
         start = block.timestamp;
         commitDuration = _commitDuration;
@@ -476,7 +485,7 @@ contract GuessTheAverage {
 
     /// @dev Reveals the guess for the user.
     ///  @param _number The number guessed.
-    ///  @param _blindingFactor What has been used for the commitment to blind the guess.
+    ///  @param _blindingFactor Bytes that has been used for the commitment to blind the guess.
     function reveal(uint256 _number, bytes32 _blindingFactor) public {
         require(
             block.timestamp >= start + commitDuration && block.timestamp < start + commitDuration + revealDuration,
@@ -551,13 +560,15 @@ contract GuessTheAverage {
     }
 }
 
-/// Exercice 14 ///
+/* Exercise 14 */
 
 /// @dev This is a piggy bank.
 ///      The owner can deposit 1 ETH whenever he wants.
 ///      He can only withdraw when the deposited amount reaches 10 ETH.
 contract PiggyBank {
     address public owner;
+
+    /* CONSTRUCTOR */
 
     /// @dev Sets msg.sender as owner
     constructor() {
@@ -576,7 +587,7 @@ contract PiggyBank {
     }
 }
 
-/// Exercice 15 ///
+/* Exercise 15 */
 
 /// @dev This is a game where an Owner considered as TRUSTED can set rounds with rewards.
 ///      The Owner allows several users to compete for the rewards. The fastest user gets all the rewards.
@@ -591,6 +602,8 @@ contract WinnerTakesAll {
     address public owner;
     Round[] public rounds;
 
+    /* CONSTRUCTOR */
+
     constructor() {
         owner = msg.sender;
     }
@@ -600,27 +613,39 @@ contract WinnerTakesAll {
         _;
     }
 
+    /// @dev Creates new rounds.
+    /// @param _numberOfRounds The number of rounds to create.
     function createNewRounds(uint256 _numberOfRounds) external {
         for (uint256 i = 0; i < _numberOfRounds; i++) {
             rounds.push();
         }
     }
 
+    /// @dev Set the reward at a specific round.
+    /// @param _roundIndex The index of the round concerned by the reward.
     function setRewardsAtRound(uint256 _roundIndex) external payable onlyOwner {
         require(rounds[_roundIndex].rewards == 0);
         rounds[_roundIndex].rewards = msg.value;
     }
 
-    function setRewardsAtRoundfor(uint256 _roundIndex, address[] calldata _recipients) external onlyOwner {
+    /// @dev Allows the participation of a set of addresses for a specific round.
+    /// @param _roundIndex The index of the round concerned.
+    /// @param _recipients The set of addresses allowed to participate.
+    function setRewardsAtRoundFor(uint256 _roundIndex, address[] calldata _recipients) external onlyOwner {
         for (uint256 i; i < _recipients.length; i++) {
             rounds[_roundIndex].isAllowed[_recipients[i]] = true;
         }
     }
 
+    /// @dev Checks if an address can participate in this round.
+    /// @param _roundIndex The index of the round to be checked.
+    /// @param _recipient The address whose authorization is to be checked.
     function isAllowedAt(uint256 _roundIndex, address _recipient) external view returns (bool) {
         return rounds[_roundIndex].isAllowed[_recipient];
     }
 
+    /// @dev Withdraws rewards of a round.
+    /// @param _roundIndex The index of the round concerned.
     function withdrawRewards(uint256 _roundIndex) external {
         require(rounds[_roundIndex].isAllowed[msg.sender]);
         uint256 amount = rounds[_roundIndex].rewards;
@@ -628,11 +653,13 @@ contract WinnerTakesAll {
         payable(msg.sender).transfer(amount);
     }
 
+    /// @dev Delete all the rounds created.
     function clearRounds() external onlyOwner {
         delete rounds;
     }
 
-    function withrawETH() external onlyOwner {
+    /// @dev Withdraws all the ethers to owner's address.
+    function withdrawETH() external onlyOwner {
         payable(msg.sender).transfer(address(this).balance);
     }
 }
