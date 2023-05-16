@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.20;
 
-contract GuessTheNumber {
-    uint256 private number;
+contract GuessTheNumber2 {
+    uint256 private immutable number;
     bool public guessed;
 
     enum Result {
@@ -24,6 +24,6 @@ contract GuessTheNumber {
     }
 }
 
-interface ISolver {
-    function solve(GuessTheNumber) external returns (uint256);
+interface ISolver2 {
+    function solve(GuessTheNumber2) external returns (uint256);
 }
