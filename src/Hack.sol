@@ -105,9 +105,8 @@ contract Vault {
     /// @dev Redeems the ETH of the sender in the contract.
     function redeem() public {
         (bool success,) = msg.sender.call{value: balances[msg.sender]}("");
-        if (success) {
-            balances[msg.sender] = 0;
-        }
+        require(success);
+        balances[msg.sender] = 0;
     }
 }
 
