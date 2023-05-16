@@ -602,13 +602,18 @@ contract GuessTheAverage {
     /// @param _count The number of transactions to execute. Executes until the end if set to "0" or number higher than number of winners in the list.
     function distribute(uint256 _count) public {
         require(currentStage == Stage.WinnersFound, "Winners must have been found");
-        for (uint256 i = cursorDistribute; i < winners.length && (_count == 0 || i < cursorDistribute + _count); i++) {
+        uint256 cursorDistributeBegin = cursorDistribute;
+        for (
+            uint256 i = cursorDistributeBegin;
+            i < winners.length && (_count == 0 || i < cursorDistributeBegin + _count);
+            i++
+        ) {
             // Send ether to the winners, use send not to block, if one of the account cannot receive ETH.
+            cursorDistribute++;
             winners[i].call{value: totalBalance / (winners.length - numberOfLosers)}("");
             if (i == winners.length - 1) currentStage = Stage.Distributed;
         }
         // Update the cursor in case we haven't finished going through the list.
-        cursorDistribute += _count;
     }
 }
 
