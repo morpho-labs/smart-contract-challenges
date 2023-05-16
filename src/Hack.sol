@@ -363,7 +363,7 @@ contract Resolver {
     }
 
     /// @dev Pays the reward to the winner. Reimburses the surplus deposit for both parties if there was one.
-    function payReward() public payable {
+    function payReward() public {
         require(declared, "The winner is not declared");
         uint256 depositA = partyDeposits[0];
         uint256 depositB = partyDeposits[1];
