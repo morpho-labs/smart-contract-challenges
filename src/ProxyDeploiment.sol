@@ -132,6 +132,10 @@ contract TokenV2 {
     event Mint(address minter, uint256 amount);
     event Redeem(address redeemer, uint256 amount);
 
+    constructor() {
+        owner = msg.sender;
+    }
+
     function mint(uint256 amount) external returns (bool) {
         require(msg.sender == owner || allowed[owner][msg.sender] >= amount);
         balances[msg.sender] += amount;
