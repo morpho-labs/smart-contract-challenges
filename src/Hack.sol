@@ -2,9 +2,9 @@
 pragma solidity ^0.8.0;
 
 // These contracts are examples of contracts with bugs and vulnerabilities to practice your hacking skills.
-// DO NOT USE THEM OR GET INSPIRATION FROM THEM TO MAKE CODE USED IN PRODUCTION
+// DO NOT USE THEM OR GET INSPIRATION FROM THEM TO MAKE CODE USED IN PRODUCTION.
 // You are required to find vulnerabilities where an attacker harms someone else.
-// Being able to destroy your own stuff is not a vulnerability and should be dealt at the interface level.
+// Being able to destroy your own stuff is not a vulnerability and should be dealt with at the interface level.
 
 /* Exercise 1 */
 
@@ -142,7 +142,7 @@ contract HeadTail {
         partyB = payable(msg.sender);
     }
 
-    /// @dev Reveals the commited value and send ETH to the winner.
+    /// @dev Reveals the committed value and sends ETH to the winner.
     /// @param _chooseHead True if Head was chosen, false otherwise.
     /// @param _randomNumber The random number chosen to obfuscate the commitment.
     function resolve(bool _chooseHead, uint256 _randomNumber) public {
@@ -237,16 +237,16 @@ contract Coffers {
         coffer.nbSlots = _slots;
     }
 
-    /// @dev Deposits money in one's coffer slot.
-    /// @param _owner The coffer to deposit money on.
-    /// @param _slot The slot to deposit money on.
+    /// @dev Deposits money into one's coffer slot.
+    /// @param _owner The owner of the coffer.
+    /// @param _slot The slot to deposit money into.
     function deposit(address _owner, uint256 _slot) external payable {
         Coffer storage coffer = coffers[_owner];
         require(_slot < coffer.nbSlots);
         coffer.slots[_slot] += msg.value;
     }
 
-    /// @dev Withdraws all of the money from one's coffer slot.
+    /// @dev Withdraws all the money from one's coffer slot.
     /// @param _slot The slot to withdraw money from.
     function withdraw(uint256 _slot) external {
         Coffer storage coffer = coffers[msg.sender];
