@@ -6,7 +6,7 @@ pragma solidity ^0.8.0;
 // These contracts are examples of contracts with bugs and vulnerabilities to practice your hacking skills.
 // DO NOT USE THEM OR GET INSPIRATION FROM THEM TO MAKE CODE USED IN PRODUCTION.
 // You are required to find vulnerabilities and problem in the contract.
-// The goal is to update the Proxy contract from the TokenV1 to the TokenV2 contract.
+// The goal of this challenge is to update the Proxy contract from the TokenV1 to the TokenV2 contract.
 // You have on this file three contracts with one proxy contract and two implementation contracts. The owner of these contracts wants to change the implementation of his proxy from TokenV1 to TokenV2.
 // The purpose of this exercise is to give the method to change the implementation of the proxy and to find if there are errors.
 
@@ -90,6 +90,8 @@ contract TokenV1 {
     uint256 totalSupply;
     mapping(address => uint256) balances;
     mapping(address => mapping(address => uint256)) allowed;
+
+    uint256[47] private _gap;
 
     event Transfer(address from, address to, uint256 amount);
     event Approval(address owner, address spender, uint256 amount);
