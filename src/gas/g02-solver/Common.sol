@@ -8,7 +8,7 @@ contract GuessTheNumber {
     enum Result {
         LESS,
         GREATER,
-        EXACT
+        EQUAL
     }
 
     constructor(uint256 _number) {
@@ -20,7 +20,7 @@ contract GuessTheNumber {
         guessed = true;
         if (number < _guess) return Result.LESS;
         else if (number > _guess) return Result.GREATER;
-        else return Result.EXACT;
+        else return Result.EQUAL;
     }
 }
 

@@ -37,26 +37,26 @@ contract TestLoop is Test, Utils {
         data = abi.encodeWithSelector(
             ref.loop1.selector, randomUint256DynamicSizeArray(keccak256("testGasLoop1"), 0, type(uint128).max, 5)
         );
-        refGas += staticCallGasUsage(address(ref), data);
-        optiGas += staticCallGasUsage(address(opti), data);
+        refGas += staticcallGasUsage(address(ref), data);
+        optiGas += staticcallGasUsage(address(opti), data);
 
         data = abi.encodeWithSelector(
             ref.loop1.selector, randomUint256DynamicSizeArray(keccak256("testGasLoop1"), 0, type(uint128).max, 50)
         );
-        refGas += staticCallGasUsage(address(ref), data);
-        optiGas += staticCallGasUsage(address(opti), data);
+        refGas += staticcallGasUsage(address(ref), data);
+        optiGas += staticcallGasUsage(address(opti), data);
 
         data = abi.encodeWithSelector(
             ref.loop1.selector, randomUint256DynamicSizeArray(keccak256("testGasLoop1"), 0, type(uint128).max, 500)
         );
-        refGas += staticCallGasUsage(address(ref), data);
-        optiGas += staticCallGasUsage(address(opti), data);
+        refGas += staticcallGasUsage(address(ref), data);
+        optiGas += staticcallGasUsage(address(opti), data);
 
         data = abi.encodeWithSelector(
             ref.loop1.selector, randomUint256DynamicSizeArray(keccak256("testGasLoop1"), 0, type(uint128).max, 5000)
         );
-        refGas += staticCallGasUsage(address(ref), data);
-        optiGas += staticCallGasUsage(address(opti), data);
+        refGas += staticcallGasUsage(address(ref), data);
+        optiGas += staticcallGasUsage(address(opti), data);
 
         printGasResult(refGas, 988255, 988255, optiGas);
     }
@@ -69,20 +69,20 @@ contract TestLoop is Test, Utils {
         data = abi.encodeWithSelector(
             ref.loop2.selector, randomUint256FixedSize10Array(keccak256("testGasLoop2.1"), 0, type(uint128).max)
         );
-        refGas += staticCallGasUsage(address(ref), data);
-        optiGas += staticCallGasUsage(address(opti), data);
+        refGas += staticcallGasUsage(address(ref), data);
+        optiGas += staticcallGasUsage(address(opti), data);
 
         data = abi.encodeWithSelector(
             ref.loop2.selector, randomUint256FixedSize10Array(keccak256("testGasLoop2.2"), 0, type(uint128).max)
         );
-        refGas += staticCallGasUsage(address(ref), data);
-        optiGas += staticCallGasUsage(address(opti), data);
+        refGas += staticcallGasUsage(address(ref), data);
+        optiGas += staticcallGasUsage(address(opti), data);
 
         data = abi.encodeWithSelector(
             ref.loop2.selector, randomUint256FixedSize10Array(keccak256("testGasLoop2.3"), 0, type(uint128).max)
         );
-        refGas += staticCallGasUsage(address(ref), data);
-        optiGas += staticCallGasUsage(address(opti), data);
+        refGas += staticcallGasUsage(address(ref), data);
+        optiGas += staticcallGasUsage(address(opti), data);
 
         printGasResult(refGas, 8932, 8932, optiGas);
     }
@@ -95,26 +95,26 @@ contract TestLoop is Test, Utils {
         data = abi.encodeWithSelector(
             ref.loop3.selector, randomUint256DynamicSizeArray(keccak256("testGasLoop3"), 0, type(uint128).max, 2)
         );
-        refGas += staticCallGasUsage(address(ref), data);
-        optiGas += staticCallGasUsage(address(opti), data);
+        refGas += staticcallGasUsage(address(ref), data);
+        optiGas += staticcallGasUsage(address(opti), data);
 
         data = abi.encodeWithSelector(
             ref.loop3.selector, randomUint256DynamicSizeArray(keccak256("testGasLoop3"), 0, type(uint128).max, 7)
         );
-        refGas += staticCallGasUsage(address(ref), data);
-        optiGas += staticCallGasUsage(address(opti), data);
+        refGas += staticcallGasUsage(address(ref), data);
+        optiGas += staticcallGasUsage(address(opti), data);
 
         data = abi.encodeWithSelector(
             ref.loop3.selector, randomUint256DynamicSizeArray(keccak256("testGasLoop3"), 0, type(uint128).max, 10)
         );
-        refGas += staticCallGasUsage(address(ref), data);
-        optiGas += staticCallGasUsage(address(opti), data);
+        refGas += staticcallGasUsage(address(ref), data);
+        optiGas += staticcallGasUsage(address(opti), data);
 
         data = abi.encodeWithSelector(
             ref.loop3.selector, randomUint256DynamicSizeArray(keccak256("testGasLoop3"), 0, type(uint128).max, 15)
         );
-        refGas += staticCallGasUsage(address(ref), data);
-        optiGas += staticCallGasUsage(address(opti), data);
+        refGas += staticcallGasUsage(address(ref), data);
+        optiGas += staticcallGasUsage(address(opti), data);
 
         printGasResult(refGas, 8467, 8467, optiGas);
     }

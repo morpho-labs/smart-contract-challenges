@@ -30,19 +30,19 @@ abstract contract Utils is StdUtils {
 
     function printGasResult(uint256 ref, uint256 target, uint256 record, uint256 opti) internal view returns (bool) {
         if (opti > ref) {
-            console2.log(unicode"Current:   %d ⛔", opti);
+            console2.log(unicode"Optimized: %d ⛔", opti);
         }
         console2.log(unicode"Reference: %d", ref);
         if (target < opti && opti <= ref) {
-            console2.log(unicode"Current:   %d ❌", opti);
+            console2.log(unicode"Optimized: %d ❌", opti);
         }
         console2.log(unicode"Target:    %d", target);
         if (record < opti && opti <= target) {
-            console2.log(unicode"Current:   %d ✅", opti);
+            console2.log(unicode"Optimized: %d ✅", opti);
         }
         console2.log(unicode"Record:    %d", record);
         if (opti <= record) {
-            console2.log(unicode"Current:   %d ⭐", opti);
+            console2.log(unicode"Optimized: %d ⭐", opti);
         }
         return opti <= target;
     }
@@ -55,7 +55,7 @@ abstract contract Utils is StdUtils {
         }
     }
 
-    function staticCallGasUsage(address addr, bytes memory data) internal view returns (uint256 res) {
+    function staticcallGasUsage(address addr, bytes memory data) internal view returns (uint256 res) {
         assembly {
             let g := gas()
             pop(staticcall(gas(), addr, add(data, 0x20), mload(data), 0, 0))
