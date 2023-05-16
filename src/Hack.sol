@@ -28,7 +28,7 @@ contract Store {
             Safe storage safe = safes[i];
             if (safe.owner == msg.sender && safe.amount != 0) {
                 (bool success,) = msg.sender.call{value: safe.amount}("");
-                require(success, "Unsuccessful send");
+                require(success, "Transfer failed");
                 safe.amount = 0;
             }
         }
@@ -93,7 +93,7 @@ contract HeadOrTail {
             (success,) = lastParty.call{value: 2 ether}("");
         }
 
-        require(success, "Unsuccessful send");
+        require(success, "Transfer failed");
         chosen = false;
     }
 }
@@ -112,7 +112,7 @@ contract Vault {
     /// @dev Redeems the ETH of the sender in the contract.
     function redeem() public {
         (bool success,) = msg.sender.call{value: balances[msg.sender]}("");
-        require(success, "Unsuccessful send");
+        require(success, "Transfer failed");
         balances[msg.sender] = 0;
     }
 }
@@ -162,7 +162,7 @@ contract HeadTail {
         if (_chooseHead == chooseHeadB) (success,) = partyB.call{value: 2 ether}("");
         else (success,) = partyA.call{value: 2 ether}("");
 
-        require(success, "Unsuccessful send");
+        require(success, "Transfer failed");
     }
 
     /// @dev Time out party A if it takes more than 1 day to reveal.
@@ -171,7 +171,7 @@ contract HeadTail {
         require(block.timestamp > timeB + 1 days);
         require(address(this).balance >= 2 ether);
         (bool success,) = partyB.call{value: 2 ether}("");
-        require(success, "Unsuccessful send");
+        require(success, "Transfer failed");
     }
 }
 
@@ -219,7 +219,7 @@ contract LinearBondedCurve {
         balances[msg.sender] -= _amount;
         totalSupply -= _amount;
         (bool success,) = msg.sender.call{value: ethToReceive}("");
-        require(success, "Unsuccessful send");
+        require(success, "Transfer failed");
     }
 
     /// @dev Sends token.
@@ -267,7 +267,7 @@ contract Coffers {
         uint256 ethToReceive = coffer.slots[_slot];
         coffer.slots[_slot] = 0;
         (bool success,) = msg.sender.call{value: ethToReceive}("");
-        require(success, "Unsuccessful send");
+        require(success, "Transfer failed");
     }
 
     /// @dev Closes an account withdrawing all the money.
@@ -279,7 +279,7 @@ contract Coffers {
         }
         coffer.nbSlots = 0;
         (bool success,) = msg.sender.call{value: amountToSend}("");
-        require(success, "Unsuccessful send");
+        require(success, "Transfer failed");
     }
 }
 
@@ -310,7 +310,7 @@ contract CommonCoffers {
         coffers[msg.sender] -= toRemove;
         scalingFactor -= toRemove;
         (bool success,) = msg.sender.call{value: _amount}("");
-        require(success, "Unsuccessful send");
+        require(success, "Transfer failed");
     }
 }
 
@@ -376,17 +376,17 @@ contract Resolver {
 
         // Pays the winner. Note that if no one put a deposit for the winning side, the reward will be burnt.
         (success,) = sides[uint256(winner)].call{value: rewardSent}("");
-        require(success, "Unsuccessful send");
+        require(success, "Transfer failed");
 
         // Reimburse the surplus deposit if there was one.
         if (depositA > baseDeposit && sides[0] != address(0)) {
             (success,) = sides[0].call{value: depositA - baseDeposit}("");
-            require(success, "Unsuccessful send");
+            require(success, "Transfer failed");
         }
 
         if (depositB > baseDeposit && sides[1] != address(0)) {
             (success,) = sides[1].call{value: depositB - baseDeposit}("");
-            require(success, "Unsuccessful send");
+            require(success, "Transfer failed");
         }
     }
 }
@@ -636,7 +636,7 @@ contract PiggyBank {
     function withdrawAll() public {
         require(msg.sender == owner && address(this).balance == 10 ether);
         (bool success,) = msg.sender.call{value: address(this).balance}("");
-        require(success, "Unsuccessful send");
+        require(success, "Transfer failed");
     }
 }
 
@@ -704,7 +704,7 @@ contract WinnerTakesAll {
         uint256 amount = rounds[_roundIndex].rewards;
         rounds[_roundIndex].rewards = 0;
         (bool success,) = msg.sender.call{value: amount}("");
-        require(success, "Unsuccessful send");
+        require(success, "Transfer failed");
     }
 
     /// @dev Delete all the rounds created.
@@ -715,6 +715,6 @@ contract WinnerTakesAll {
     /// @dev Withdraws all the ethers to owner's address.
     function withdrawETH() external onlyOwner {
         (bool success,) = msg.sender.call{value: address(this).balance}("");
-        require(success, "Unsuccessful send");
+        require(success, "Transfer failed");
     }
 }
