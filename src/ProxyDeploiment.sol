@@ -8,7 +8,7 @@ pragma solidity ^0.8.0;
 // You are required to find vulnerabilities and problem in the contract.
 // The goal of this challenge is to update the Proxy contract from the TokenV1 to the TokenV2 contract.
 // You have on this file three contracts with one proxy contract and two implementation contracts. The owner of these contracts wants to change the implementation of his proxy from TokenV1 to TokenV2.
-// The purpose of this exercise is to give the method to change the implementation of the proxy and to find the different errors.
+// The purpose of this exercise is to give the method to change the implementation of the proxy and to find the different errors. You can reorganize the new implementation if needed.
 
 contract Proxy {
     address internal admin;
