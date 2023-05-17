@@ -707,6 +707,8 @@ contract RewardsDistributor {
     uint256 public constant REWARD_AMOUNT = 1 ether;
     bytes32 public immutable ROOT;
 
+    mapping(bytes32 node => bool) public claimed;
+
     /**
      * @notice Assumes that the deployer has provided a valid root hash, and sent the correct amount of ETH with the deployment.
      * @param root The root hash of the Merkle tree used for reward distribution.
@@ -715,18 +717,15 @@ contract RewardsDistributor {
         ROOT = root;
     }
 
-    mapping(bytes32 node => bool) public claimed;
-
     /**
-     * @dev Merkle proof verification based on
-     * https://github.com/ameensol/merkle-tree-solidity/blob/master/src/MerkleProof.sol
      * @dev Verifies a Merkle proof proving the existence of a leaf in a Merkle tree. Assumes that each pair of leaves
      * and each pair of pre-images are sorted.
-     * @param proof Merkle proof containing sibling hashes on the branch from the leaf to the root of the Merkle tree.
-     * @param leaf Leaf of Merkle tree.
+     * @param proof Merkle proof containing sibling hashes on the branch from the leaf to the root of the Merkle tree
+     * @param root Merkle root
+     * @param leaf Leaf of Merkle tree
      * @return A boolean indicating whether the proof is valid or not.
      */
-    function _verify(bytes32[] calldata proof, bytes32 leaf) internal view returns (bool) {
+    function _verify(bytes32[] calldata proof, bytes32 root, bytes32 leaf) internal pure returns (bool) {
         bytes32 computedHash = leaf;
 
         for (uint256 i = 0; i < proof.length; i++) {
@@ -742,7 +741,7 @@ contract RewardsDistributor {
         }
 
         // Check if the computed hash (root) is equal to the provided root
-        return computedHash == ROOT;
+        return computedHash == root;
     }
 
     /**
@@ -766,7 +765,7 @@ contract RewardsDistributor {
         bytes32 node = keccak256(abi.encodePacked(onBehalf, nonce, startTime));
 
         require(!claimed[node], "Already claimed");
-        require(_verify(proof, node), "Invalid proof");
+        require(_verify(proof, ROOT, node), "Invalid proof");
         require(block.timestamp >= startTime, "Not yet claimable");
 
         claimed[node] = true;
