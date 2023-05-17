@@ -116,7 +116,7 @@ contract Vault {
 contract Locker {
     bytes32 commitment;
 
-    /// @dev Locks the funds by setting the commitment.
+    /// @dev Locks the funds sent along with this transaction by setting the commitment.
     /// @param _commitment The commitment to lock the funds.
     function lock(bytes32 _commitment) external payable {
         require(_commitment != bytes32(0), "Invalid commitment");
