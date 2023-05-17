@@ -259,70 +259,61 @@ contract ERC20 {
     }
 }
 
-contract ContinousToken is ERC20 {
-    uint256 MAX_WANTED = 2 * 10e4;
+contract LinearPool {
+    uint256 public MAX_WANTED = 2 * 10e4;
+    ERC20 public token;
 
     event Received(address, uint256);
 
-    constructor() payable ERC20("Continous Token", "TOK") {
+    constructor() payable {
+        token = new ERC20("Continous Token", "TOK");
         require(msg.value == 1e4);
-        _mint(address(this), 1e4);
+        token.transfer(address(this), 1e4);
     }
 
-    /**
-     * @dev Mint some TOK token by allowing contract to spend an amount of caller reserve tokens
-     */
     function buy() public payable returns (uint256) {
         require(msg.value <= 1e4, "Deposit must be non-zero.");
-        transfer(msg.sender, msg.value);
+        token.transfer(msg.sender, msg.value);
         return msg.value;
     }
 
-    /**
-     * @dev Burn some TOK token and return reserve token based on current curve price
-     * @param _amount Number of TOK token to convert to reserve tokens
-     */
-    function burn(uint256 _amount) public returns (uint256) {
-        transfer(address(this), _amount);
+    function sell(uint256 _amount) public returns (uint256) {
+        token.transfer(address(this), _amount);
         (bool success,) = payable(msg.sender).call{value: _amount}("");
         require(success);
         return _amount;
     }
 
     function getOracle() public view returns (uint256) {
-        return address(this).balance / totalSupply();
-    }
-
-    receive() external payable {
-        emit Received(msg.sender, msg.value);
+        return address(this).balance / token.totalSupply();
     }
 }
 
 contract LendingETH {
     mapping(address => uint256) private deposit;
     mapping(address => uint256) private borrow;
-    ContinousToken tokenCollateral;
+    LinearPool pool;
 
     constructor() payable {
-        tokenCollateral = new ContinousToken();
+        pool = new LinearPool();
         require(msg.value == 10e4 ether);
     }
 
     function depositToken(uint256 amount) external {
-        tokenCollateral.approve(address(this), amount);
-        tokenCollateral.transferFrom(msg.sender, address(this), amount);
+        pool.token().approve(address(this), amount);
+        pool.token().transferFrom(msg.sender, address(this), amount);
         deposit[msg.sender] += amount;
     }
 
     function withdrawToken(uint256 amount) external {
-        uint256 price = tokenCollateral.getOracle();
+        uint256 price = pool.getOracle();
         require(deposit[msg.sender] - borrow[msg.sender] / price >= amount);
-        tokenCollateral.transfer(msg.sender, amount);
+        pool.token().transfer(msg.sender, amount);
         deposit[msg.sender] -= amount;
     }
 
     function lendETH(uint256 amount) external returns (uint256) {
-        uint256 price = tokenCollateral.getOracle();
+        uint256 price = pool.getOracle();
         uint256 borrowPower = price * deposit[msg.sender] - borrow[msg.sender];
         if (borrowPower > 0) {
             return 0;
