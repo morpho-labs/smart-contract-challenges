@@ -770,6 +770,7 @@ contract RewardsDistributor {
         require(_verify(proof, node), "Invalid proof");
 
         require(block.timestamp >= startTime, "Not yet claimable");
+
         (bool success,) = onBehalf.call{value: REWARD_AMOUNT}("");
         require(success, "Transfer failed");
     }
