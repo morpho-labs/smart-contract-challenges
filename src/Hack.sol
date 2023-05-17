@@ -696,3 +696,81 @@ contract WinnerTakesAll {
         payable(msg.sender).transfer(address(this).balance);
     }
 }
+
+/* Exercise 16 */
+
+/**
+ * @title RewardsDistributor
+ * @dev A contract for distributing rewards using Merkle proofs.
+ */
+contract RewardsDistributor {
+    uint256 public constant REWARD_AMOUNT = 1 ether;
+    bytes32 public immutable ROOT;
+
+    /**
+     * @notice Assumes that the deployer has provided a valid root hash, and sent the correct amount of ETH with the deployment.
+     * @param root The root hash of the Merkle tree used for reward distribution.
+     */
+    constructor(bytes32 root) payable {
+        ROOT = root;
+    }
+
+    mapping(address user => mapping(uint256 nonce => mapping(uint96 startTime => bool))) public claimed;
+
+    /**
+     * @dev Merkle proof verification based on
+     * https://github.com/ameensol/merkle-tree-solidity/blob/master/src/MerkleProof.sol
+     * @dev Verifies a Merkle proof proving the existence of a leaf in a Merkle tree. Assumes that each pair of leaves
+     * and each pair of pre-images are sorted.
+     * @param proof Merkle proof containing sibling hashes on the branch from the leaf to the root of the Merkle tree.
+     * @param leaf Leaf of Merkle tree.
+     * @return A boolean indicating whether the proof is valid or not.
+     */
+    function _verify(bytes32[] calldata proof, bytes32 leaf) internal view returns (bool) {
+        bytes32 computedHash = leaf;
+
+        for (uint256 i = 0; i < proof.length; i++) {
+            bytes32 proofElement = proof[i];
+
+            if (computedHash < proofElement) {
+                // Hash(current computed hash + current element of the proof)
+                computedHash = keccak256(abi.encodePacked(computedHash, proofElement));
+            } else {
+                // Hash(current element of the proof + current computed hash)
+                computedHash = keccak256(abi.encodePacked(proofElement, computedHash));
+            }
+        }
+
+        // Check if the computed hash (root) is equal to the provided root
+        return computedHash == ROOT;
+    }
+
+    /**
+     * @dev Allows an address to claim a reward based on a provided nonce and Merkle proof.
+     * @param nonce A unique identifier for the reward claim, allowing multiple rewards to the same address.
+     * @param startTime The starting time from which the reward can be claimed.
+     * @param proof Merkle proof for validating the claim.
+     */
+    function claim(uint256 nonce, uint96 startTime, bytes32[] calldata proof) external {
+        claimOnBehalf(msg.sender, nonce, startTime, proof);
+    }
+
+    /**
+     * @dev Allows an address to claim rewards on behalf of another address based on a provided nonce and Merkle proof.
+     * @param onBehalf The address for which the rewards are being claimed.
+     * @param nonce A unique identifier for the reward claim, allowing multiple rewards to the same address.
+     * @param startTime The starting time from which the reward can be claimed.
+     * @param proof Merkle proof for validating the claim.
+     */
+    function claimOnBehalf(address onBehalf, uint256 nonce, uint96 startTime, bytes32[] calldata proof) public {
+        require(!claimed[onBehalf][nonce][startTime], "Already claimed");
+        claimed[onBehalf][nonce][startTime] = true;
+
+        bytes32 node = keccak256(abi.encodePacked(onBehalf, nonce, startTime));
+        require(_verify(proof, node), "Invalid proof");
+
+        require(block.timestamp >= startTime, "Not yet claimable");
+        (bool success,) = onBehalf.call{value: REWARD_AMOUNT}("");
+        require(success, "Transfer failed");
+    }
+}
