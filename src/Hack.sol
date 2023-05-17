@@ -715,7 +715,7 @@ contract RewardsDistributor {
         ROOT = root;
     }
 
-    mapping(address user => mapping(uint256 nonce => mapping(uint96 startTime => bool))) public claimed;
+    mapping(bytes32 node => bool) public claimed;
 
     /**
      * @dev Merkle proof verification based on
@@ -763,14 +763,13 @@ contract RewardsDistributor {
      * @param proof Merkle proof for validating the claim.
      */
     function claimOnBehalf(address onBehalf, uint256 nonce, uint96 startTime, bytes32[] calldata proof) public {
-        require(!claimed[onBehalf][nonce][startTime], "Already claimed");
-        claimed[onBehalf][nonce][startTime] = true;
-
         bytes32 node = keccak256(abi.encodePacked(onBehalf, nonce, startTime));
-        require(_verify(proof, node), "Invalid proof");
 
+        require(!claimed[node], "Already claimed");
+        require(_verify(proof, node), "Invalid proof");
         require(block.timestamp >= startTime, "Not yet claimable");
 
+        claimed[node] = true;
         (bool success,) = onBehalf.call{value: REWARD_AMOUNT}("");
         require(success, "Transfer failed");
     }
