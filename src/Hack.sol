@@ -105,7 +105,8 @@ contract Vault {
 
     /// @dev Redeems the ETH of the sender in the contract.
     function redeem() public {
-        msg.sender.call{value: balances[msg.sender]}("");
+        (bool success,) = msg.sender.call{value: balances[msg.sender]}("");
+        require(success);
         balances[msg.sender] = 0;
     }
 }
@@ -615,7 +616,7 @@ contract PiggyBank {
     /// @dev Withdraws the entire smart contract balance
     function withdrawAll() public {
         require(msg.sender == owner && address(this).balance == 10 ether);
-        payable(owner).send(address(this).balance);
+        payable(owner).transfer(address(this).balance);
     }
 }
 
