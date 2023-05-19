@@ -702,6 +702,7 @@ contract WinnerTakesAll {
 /// @dev A contract for distributing rewards using Merkle proofs.
 contract RewardsDistributor {
     uint256 public constant REWARD_AMOUNT = 1 ether;
+    address public immutable ADMIN;
     bytes32 public immutable ROOT;
 
     mapping(bytes32 node => bool) public claimed;
@@ -709,6 +710,7 @@ contract RewardsDistributor {
     /// @notice Assumes that the deployer has provided a valid root hash, and sent the correct amount of ETH with the deployment.
     /// @param root The root hash of the Merkle tree used for reward distribution.
     constructor(bytes32 root) payable {
+        ADMIN = msg.sender;
         ROOT = root;
     }
 
@@ -739,26 +741,27 @@ contract RewardsDistributor {
 
     /// @dev Allows an address to claim a reward based on a provided nonce and Merkle proof.
     /// @param nonce A unique identifier for the reward claim, allowing multiple rewards to the same address.
-    /// @param startTime The starting time from which the reward can be claimed.
+    /// @param deadline The deadline until which the reward can be claimed.
     /// @param proof Merkle proof for validating the claim.
-    function claim(uint256 nonce, uint96 startTime, bytes32[] calldata proof) external {
-        claimOnBehalf(msg.sender, nonce, startTime, proof);
+    function claim(uint256 nonce, uint96 deadline, bytes32[] calldata proof) external {
+        claimOnBehalf(msg.sender, nonce, deadline, proof);
     }
 
     /// @dev Allows an address to claim rewards on behalf of another address based on a provided nonce and Merkle proof.
     /// @param onBehalf The address for which the rewards are being claimed.
     /// @param nonce A unique identifier for the reward claim, allowing multiple rewards to the same address.
-    /// @param startTime The starting time from which the reward can be claimed.
+    /// @param deadline The deadline until which the reward can be claimed.
     /// @param proof Merkle proof for validating the claim.
-    function claimOnBehalf(address onBehalf, uint256 nonce, uint96 startTime, bytes32[] calldata proof) public {
-        bytes32 node = keccak256(abi.encodePacked(onBehalf, nonce, startTime));
+    function claimOnBehalf(address onBehalf, uint256 nonce, uint96 deadline, bytes32[] calldata proof) public {
+        bytes32 node = keccak256(abi.encodePacked(onBehalf, nonce, deadline));
 
         require(!claimed[node], "Already claimed");
         require(_verify(proof, ROOT, node), "Invalid proof");
-        require(block.timestamp >= startTime, "Not yet claimable");
 
         claimed[node] = true;
-        (bool success,) = onBehalf.call{value: REWARD_AMOUNT}("");
+
+        // Transfer the reward amount to the claimant or admin if the deadline has passed
+        (bool success,) = (block.timestamp < deadline ? onBehalf: ADMIN).call{value: REWARD_AMOUNT}("");
         require(success, "Transfer failed");
     }
 }
