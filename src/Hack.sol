@@ -39,23 +39,22 @@ contract Store {
 
 /* Exercise 2 */
 
-/// @dev You can buy some objects.
-///      Further purchases are discounted.
-///      You need to pay basePrice / (1 + objectBought), where objectBought is the number of objects you previously bought.
+/// @dev Enables users to purchase objects at discounted prices.
 contract DiscountedBuy {
-    uint256 public basePrice = 1 ether;
-    mapping(address => uint256) public objectBought;
+    uint256 public constant BASE_PRICE = 1 ether;
+    mapping(address => uint256) public objectsPurchased;
 
-    /// @dev Buy an object.
+    /// @dev Allows a user to buy an object by paying the appropriate price.
+    /// @notice The price is calculated as `BASE_PRICE / (1 + objectsPurchased[msg.sender])`.
     function buy() public payable {
-        require(msg.value * (1 + objectBought[msg.sender]) == basePrice);
-        objectBought[msg.sender] += 1;
+        require(msg.value * (1 + objectsPurchased[msg.sender]) == BASE_PRICE, "Incorrect payment amount");
+        objectsPurchased[msg.sender]++;
     }
 
-    /// @dev Returns the price you'll need to pay.
-    /// @return The amount you need to pay in wei.
+    /// @dev Calculates and returns the price of the next object to be purchased.
+    /// @return The amount to be paid in wei.
     function price() public view returns (uint256) {
-        return basePrice / (1 + objectBought[msg.sender]);
+        return BASE_PRICE / (1 + objectsPurchased[msg.sender]);
     }
 }
 
