@@ -147,7 +147,7 @@ contract SimpleToken {
     }
 
     /// @dev Sends token.
-    ///  @param _recipient The recipient.
+    /// @param _recipient The recipient.
     /// @param _amount The amount to send.
     function sendToken(address _recipient, int256 _amount) public {
         balances[msg.sender] -= _amount;
@@ -200,7 +200,7 @@ contract Coffers {
     mapping(address => Coffer) public coffers;
 
     /// @dev Creates coffers.
-    ///  @param _slots The amount of slots the coffer will have.
+    /// @param _slots The amount of slots the coffer will have.
     function createCoffer(uint256 _slots) external {
         Coffer storage coffer = coffers[msg.sender];
         require(coffer.nbSlots == 0, "Coffer already created");
@@ -359,9 +359,9 @@ contract Registry {
     mapping(bytes32 => User) public users; // User isn't identified by address but by his ID, since the same person can have multiple addresses.
 
     /// @dev Adds yourself to the registry.
-    ///  @param _name The first name of the user.
-    ///  @param _surname The last name of the user.
-    ///  @param _nonce An arbitrary number to allow multiple users with the same first and last name.
+    /// @param _name The first name of the user.
+    /// @param _surname The last name of the user.
+    /// @param _nonce An arbitrary number to allow multiple users with the same first and last name.
     function register(string calldata _name, string calldata _surname, uint256 _nonce) public {
         require(!isRegistered[_name][_surname][_nonce], "This profile is already registered");
         isRegistered[_name][_surname][_nonce] = true;
@@ -485,8 +485,8 @@ contract GuessTheAverage {
     }
 
     /// @dev Reveals the guess for the user.
-    ///  @param _number The number guessed.
-    ///  @param _blindingFactor Bytes that has been used for the commitment to blind the guess.
+    /// @param _number The number guessed.
+    /// @param _blindingFactor Bytes that has been used for the commitment to blind the guess.
     function reveal(uint256 _number, bytes32 _blindingFactor) public {
         require(
             block.timestamp >= start + commitDuration && block.timestamp < start + commitDuration + revealDuration,
