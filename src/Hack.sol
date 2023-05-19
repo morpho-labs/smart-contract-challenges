@@ -2,9 +2,9 @@
 pragma solidity ^0.8.0;
 
 // These contracts are examples of contracts with bugs and vulnerabilities to practice your hacking skills.
-// DO NOT USE THEM OR GET INSPIRATION FROM THEM TO MAKE CODE USED IN PRODUCTION
+// DO NOT USE THEM OR GET INSPIRATION FROM THEM TO MAKE CODE USED IN PRODUCTION.
 // You are required to find vulnerabilities where an attacker harms someone else.
-// Being able to destroy your own stuff is not a vulnerability and should be dealt at the interface level.
+// Being able to destroy your own stuff is not a vulnerability and should be dealt with at the interface level.
 
 /* Exercise 1 */
 
@@ -27,9 +27,11 @@ contract Store {
         for (uint256 i; i < safes.length; ++i) {
             Safe storage safe = safes[i];
             if (safe.owner == msg.sender && safe.amount != 0) {
-                (bool success,) = msg.sender.call{value: safe.amount}("");
-                require(success, "Transfer failed");
+                uint256 amount = safe.amount;
                 safe.amount = 0;
+
+                (bool success,) = msg.sender.call{value: amount}("");
+                require(success, "Transfer failed");
             }
         }
     }
@@ -112,58 +114,22 @@ contract Vault {
 
 /* Exercise 5 */
 
-/// @dev One party chooses Head or Tail and sends 1 ETH.
-///      The next party sends 1 ETH and tries to guess what the first party chose.
-///      If they succeed, they get 2 ETH, else the first party gets 2 ETH.
-contract HeadTail {
-    address public partyA;
-    address public partyB;
-    bytes32 public commitmentA;
-    bool public chooseHeadB;
-    uint256 public timeB;
+/// @dev Contract for locking and unlocking funds using a commitment and password.
+contract Locker {
+    bytes32 commitment;
 
-    /* CONSTRUCTOR */
-
-    /// @param _commitmentA is the result of the following command: keccak256(abi.encode(chooseHead,randomNumber)).
-    constructor(bytes32 _commitmentA) payable {
-        require(msg.value == 1 ether);
-
-        commitmentA = _commitmentA;
-        partyA = msg.sender;
+    /// @dev Locks the funds sent along with this transaction by setting the commitment.
+    /// @param _commitment The commitment to lock the funds.
+    function lock(bytes32 _commitment) external payable {
+        require(_commitment != bytes32(0), "Invalid commitment");
+        commitment = _commitment;
     }
 
-    /// @dev Guesses the choice of party A.
-    /// @param _chooseHead True if the guess is Head, false otherwise.
-    function guess(bool _chooseHead) public payable {
-        require(msg.value == 1 ether);
-        require(partyB == address(0));
-
-        chooseHeadB = _chooseHead;
-        timeB = block.timestamp;
-        partyB = msg.sender;
-    }
-
-    /// @dev Reveals the commited value and send ETH to the winner.
-    /// @param _chooseHead True if Head was chosen, false otherwise.
-    /// @param _randomNumber The random number chosen to obfuscate the commitment.
-    function resolve(bool _chooseHead, uint256 _randomNumber) public {
-        require(msg.sender == partyA);
-        require(keccak256(abi.encode(_chooseHead, _randomNumber)) == commitmentA);
-        require(address(this).balance >= 2 ether);
-
-        bool success;
-        if (_chooseHead == chooseHeadB) (success,) = partyB.call{value: 2 ether}("");
-        else (success,) = partyA.call{value: 2 ether}("");
-
-        require(success, "Transfer failed");
-    }
-
-    /// @dev Time out party A if it takes more than 1 day to reveal.
-    ///      Sends ETH to party B.
-    function timeOut() public {
-        require(block.timestamp > timeB + 1 days);
-        require(address(this).balance >= 2 ether);
-        (bool success,) = partyB.call{value: 2 ether}("");
+    /// @dev Unlocks the funds by comparing the provided password with the commitment.
+    /// @param _password The password to unlock the funds.
+    function unlock(string calldata _password) external {
+        require(keccak256(abi.encode(_password)) == commitment, "Invalid password");
+        (bool success,) = msg.sender.call{value: address(this).balance}("");
         require(success, "Transfer failed");
     }
 }
@@ -243,16 +209,16 @@ contract Coffers {
         coffer.nbSlots = _slots;
     }
 
-    /// @dev Deposits money in one's coffer slot.
-    /// @param _owner The coffer to deposit money on.
-    /// @param _slot The slot to deposit money on.
+    /// @dev Deposits money into one's coffer slot.
+    /// @param _owner The owner of the coffer.
+    /// @param _slot The slot to deposit money into.
     function deposit(address _owner, uint256 _slot) external payable {
         Coffer storage coffer = coffers[_owner];
         require(_slot < coffer.nbSlots);
         coffer.slots[_slot] += msg.value;
     }
 
-    /// @dev Withdraws all of the money from one's coffer slot.
+    /// @dev Withdraws all the money from one's coffer slot.
     /// @param _slot The slot to withdraw money from.
     function withdraw(uint256 _slot) external {
         Coffer storage coffer = coffers[msg.sender];
