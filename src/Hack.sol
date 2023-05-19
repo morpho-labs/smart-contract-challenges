@@ -29,7 +29,9 @@ contract Store {
             if (safe.owner == msg.sender && safe.amount != 0) {
                 uint256 amount = safe.amount;
                 safe.amount = 0;
-                payable(msg.sender).transfer(amount);
+
+                (bool success,) = msg.sender.call{value: amount}("");
+                require(success, "Transfer failed");
             }
         }
     }
@@ -65,7 +67,7 @@ contract DiscountedBuy {
 contract HeadOrTail {
     bool public chosen; // True if the choice has been made.
     bool public lastChoiceHead; // True if the choice is head.
-    address payable public lastParty; // The last party who chose.
+    address public lastParty; // The last party who chose.
 
     /// @dev Must be sent 1 ETH.
     ///      Choose Head or Tail to be guessed by the other player.
@@ -76,7 +78,7 @@ contract HeadOrTail {
 
         chosen = true;
         lastChoiceHead = _chooseHead;
-        lastParty = payable(msg.sender);
+        lastParty = msg.sender;
     }
 
     /// @dev Guesses the choice of the first party and resolves the Head or Tail Game.
@@ -85,9 +87,8 @@ contract HeadOrTail {
         require(chosen);
         require(msg.value == 1 ether);
 
-        if (_guessHead == lastChoiceHead) payable(msg.sender).transfer(2 ether);
-        else lastParty.transfer(2 ether);
-
+        (bool success,) = (_guessHead == lastChoiceHead ? msg.sender : lastParty).call{value: 2 ether}("");
+        require(success, "Transfer failed");
         chosen = false;
     }
 }
@@ -106,7 +107,7 @@ contract Vault {
     /// @dev Redeems the ETH of the sender in the contract.
     function redeem() public {
         (bool success,) = msg.sender.call{value: balances[msg.sender]}("");
-        require(success);
+        require(success, "Transfer failed");
         balances[msg.sender] = 0;
     }
 }
@@ -176,7 +177,8 @@ contract LinearBondedCurve {
         uint256 ethToReceive = ((1e18 + totalSupply) * _amount) / 1e18;
         balances[msg.sender] -= _amount;
         totalSupply -= _amount;
-        payable(msg.sender).transfer(ethToReceive);
+        (bool success,) = msg.sender.call{value: ethToReceive}("");
+        require(success, "Transfer failed");
     }
 
     /// @dev Sends token.
@@ -221,8 +223,10 @@ contract Coffers {
     function withdraw(uint256 _slot) external {
         Coffer storage coffer = coffers[msg.sender];
         require(_slot < coffer.nbSlots);
-        payable(msg.sender).transfer(coffer.slots[_slot]);
+        uint256 ethToReceive = coffer.slots[_slot];
         coffer.slots[_slot] = 0;
+        (bool success,) = msg.sender.call{value: ethToReceive}("");
+        require(success, "Transfer failed");
     }
 
     /// @dev Closes an account withdrawing all the money.
@@ -233,7 +237,8 @@ contract Coffers {
             amountToSend += coffer.slots[i];
         }
         coffer.nbSlots = 0;
-        payable(msg.sender).transfer(amountToSend);
+        (bool success,) = msg.sender.call{value: amountToSend}("");
+        require(success, "Transfer failed");
     }
 }
 
@@ -263,7 +268,8 @@ contract CommonCoffers {
         uint256 toRemove = (scalingFactor * _amount) / address(this).balance;
         coffers[msg.sender] -= toRemove;
         scalingFactor -= toRemove;
-        payable(msg.sender).transfer(_amount);
+        (bool success,) = msg.sender.call{value: _amount}("");
+        require(success, "Transfer failed");
     }
 }
 
@@ -278,7 +284,7 @@ contract Resolver {
     }
 
     address public owner = msg.sender;
-    address payable[2] public sides;
+    address[2] public sides;
 
     uint256 public baseDeposit;
     uint256 public reward;
@@ -301,7 +307,7 @@ contract Resolver {
         require(!declared, "The winner is already declared");
         require(sides[uint256(_side)] == address(0), "Side already paid");
         require(msg.value > baseDeposit, "Should cover the base deposit");
-        sides[uint256(_side)] = payable(msg.sender);
+        sides[uint256(_side)] = msg.sender;
         partyDeposits[uint256(_side)] = msg.value;
     }
 
@@ -321,22 +327,26 @@ contract Resolver {
         uint256 depositA = partyDeposits[0];
         uint256 depositB = partyDeposits[1];
 
+        uint256 rewardSent = reward;
+        reward = 0;
         partyDeposits[0] = 0;
         partyDeposits[1] = 0;
+        bool success;
 
         // Pays the winner. Note that if no one put a deposit for the winning side, the reward will be burnt.
-        require(sides[uint256(winner)].send(reward), "Unsuccessful send");
+        (success,) = sides[uint256(winner)].call{value: rewardSent}("");
+        require(success, "Transfer failed");
 
         // Reimburse the surplus deposit if there was one.
         if (depositA > baseDeposit && sides[0] != address(0)) {
-            require(sides[0].send(depositA - baseDeposit), "Unsuccessful send");
+            (success,) = sides[0].call{value: depositA - baseDeposit}("");
+            require(success, "Transfer failed");
         }
 
         if (depositB > baseDeposit && sides[1] != address(0)) {
-            require(sides[1].send(depositB - baseDeposit), "Unsuccessful send");
+            (success,) = sides[1].call{value: depositB - baseDeposit}("");
+            require(success, "Transfer failed");
         }
-
-        reward = 0;
     }
 }
 
@@ -551,13 +561,14 @@ contract GuessTheAverage {
     /// @param _count The number of transactions to execute. Executes until the end if set to "0" or number higher than number of winners in the list.
     function distribute(uint256 _count) public {
         require(currentStage == Stage.WinnersFound, "Winners must have been found");
-        for (uint256 i = cursorDistribute; i < winners.length && (_count == 0 || i < cursorDistribute + _count); i++) {
-            // Send ether to the winners, use send not to block.
-            payable(winners[i]).send(totalBalance / (winners.length - numberOfLosers));
-            if (i == winners.length - 1) currentStage = Stage.Distributed;
+
+        while (cursorDistribute < winners.length && _count != 0) {
+            // Send ether to the winners. Do not block if one of the account cannot receive ETH.
+            winners[cursorDistribute++].call{value: totalBalance / (winners.length - numberOfLosers)}("");
+            _count--;
         }
-        // Update the cursor in case we haven't finished going through the list.
-        cursorDistribute += _count;
+
+        if (cursorDistribute == winners.length - 1) currentStage = Stage.Distributed;
     }
 }
 
@@ -584,7 +595,8 @@ contract PiggyBank {
     /// @dev Withdraws the entire smart contract balance
     function withdrawAll() public {
         require(msg.sender == owner && address(this).balance == 10 ether);
-        payable(owner).transfer(address(this).balance);
+        (bool success,) = msg.sender.call{value: address(this).balance}("");
+        require(success, "Transfer failed");
     }
 }
 
@@ -651,7 +663,8 @@ contract WinnerTakesAll {
         require(rounds[_roundIndex].isAllowed[msg.sender]);
         uint256 amount = rounds[_roundIndex].rewards;
         rounds[_roundIndex].rewards = 0;
-        payable(msg.sender).transfer(amount);
+        (bool success,) = msg.sender.call{value: amount}("");
+        require(success, "Transfer failed");
     }
 
     /// @dev Delete all the rounds created.
@@ -661,6 +674,7 @@ contract WinnerTakesAll {
 
     /// @dev Withdraws all the ethers to owner's address.
     function withdrawETH() external onlyOwner {
-        payable(msg.sender).transfer(address(this).balance);
+        (bool success,) = msg.sender.call{value: address(this).balance}("");
+        require(success, "Transfer failed");
     }
 }
