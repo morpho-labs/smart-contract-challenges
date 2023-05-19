@@ -139,8 +139,6 @@ contract Locker {
 contract SimpleToken {
     mapping(address => int256) public balances;
 
-    /* CONSTRUCTOR */
-
     /// @dev Creator starts with all the tokens.
     constructor() {
         balances[msg.sender] = 1000e18;
@@ -291,8 +289,6 @@ contract Resolver {
     bool public declared;
 
     uint256[2] public partyDeposits;
-
-    /* CONSTRUCTOR */
 
     /// @param _baseDeposit The deposit a party has to pay. Note that it is greater than the reward.
     constructor(uint256 _baseDeposit) payable {
@@ -469,8 +465,6 @@ contract GuessTheAverage {
     mapping(address => Player) public players; // Maps an address to its respective Player status.
     mapping(uint256 => address) public indexToPlayer; // Maps a guess index to the player who made the guess.
 
-    /* CONSTRUCTOR */
-
     constructor(uint32 _commitDuration, uint32 _revealDuration) {
         start = block.timestamp;
         commitDuration = _commitDuration;
@@ -579,8 +573,6 @@ contract GuessTheAverage {
 contract PiggyBank {
     address public owner;
 
-    /* CONSTRUCTOR */
-
     /// @dev Sets msg.sender as owner
     constructor() {
         owner = msg.sender;
@@ -613,8 +605,6 @@ contract WinnerTakesAll {
 
     address public owner;
     Round[] public rounds;
-
-    /* CONSTRUCTOR */
 
     constructor() {
         owner = msg.sender;
