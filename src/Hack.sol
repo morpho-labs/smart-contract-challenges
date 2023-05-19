@@ -610,8 +610,6 @@ contract GuessTheAverage {
         }
 
         if (cursorDistribute == winners.length - 1) currentStage = Stage.Distributed;
-
-        // Update the cursor in case we haven't finished going through the list.
     }
 }
 
