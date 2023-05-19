@@ -761,7 +761,7 @@ contract RewardsDistributor {
         claimed[node] = true;
 
         // Transfer the reward amount to the claimant or admin if the deadline has passed
-        (bool success,) = (block.timestamp < deadline ? onBehalf: ADMIN).call{value: REWARD_AMOUNT}("");
+        (bool success,) = (block.timestamp < deadline ? onBehalf : ADMIN).call{value: REWARD_AMOUNT}("");
         require(success, "Transfer failed");
     }
 }
