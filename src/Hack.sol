@@ -85,14 +85,7 @@ contract HeadOrTail {
         require(chosen);
         require(msg.value == 1 ether);
 
-        bool success;
-
-        if (_guessHead == lastChoiceHead) {
-            (success,) = msg.sender.call{value: 2 ether}("");
-        } else {
-            (success,) = lastParty.call{value: 2 ether}("");
-        }
-
+        (bool success,) = (_guessHead == lastChoiceHead ? msg.sender : lastParty).call{value: 2 ether}("");
         require(success, "Transfer failed");
         chosen = false;
     }
