@@ -65,28 +65,28 @@ contract DiscountedBuy {
 ///      If they succeed, they get 2 ETH, else the first party gets 2 ETH.
 contract HeadOrTail {
     bool public chosen; // True if the choice has been made.
-    bool public lastChoiceHead; // True if the choice is head.
+    bool public lastChoiceIsHead; // True if the choice is head.
     address public lastParty; // The last party who chose.
 
     /// @dev Must be sent 1 ETH.
     ///      Choose Head or Tail to be guessed by the other player.
-    /// @param _chooseHead True if Head was chosen, false if Tail was chosen.
-    function choose(bool _chooseHead) public payable {
-        require(!chosen);
-        require(msg.value == 1 ether);
+    /// @param chooseHead True if Head was chosen, false if Tail was chosen.
+    function choose(bool chooseHead) public payable {
+        require(!chosen, "Choice already made");
+        require(msg.value == 1 ether, "Incorrect payment amount");
 
         chosen = true;
-        lastChoiceHead = _chooseHead;
+        lastChoiceIsHead = chooseHead;
         lastParty = msg.sender;
     }
 
     /// @dev Guesses the choice of the first party and resolves the Head or Tail Game.
-    /// @param _guessHead The guess (Head or Tail) of the opposite party.
-    function guess(bool _guessHead) public payable {
-        require(chosen);
-        require(msg.value == 1 ether);
+    /// @param guessHead The guess (Head or Tail) of the opposite party.
+    function guess(bool guessHead) public payable {
+        require(chosen, "Choice not made yet");
+        require(msg.value == 1 ether, "Incorrect payment amount");
 
-        (bool success,) = (_guessHead == lastChoiceHead ? msg.sender : lastParty).call{value: 2 ether}("");
+        (bool success,) = (guessHead == lastChoiceIsHead ? msg.sender : lastParty).call{value: 2 ether}("");
         require(success, "Transfer failed");
         chosen = false;
     }
