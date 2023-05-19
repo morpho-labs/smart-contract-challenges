@@ -143,7 +143,7 @@ contract SimpleToken {
 
     /// @dev Creator starts with all the tokens.
     constructor() {
-        balances[msg.sender] += 1000e18;
+        balances[msg.sender] = 1000e18;
     }
 
     /// @dev Sends token.
