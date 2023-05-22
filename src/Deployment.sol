@@ -3,7 +3,7 @@
 
 pragma solidity ^0.8.0;
 
-//These contracts are examples of contracts with bugs and vulnerabilities to practice your hacking skills.
+// These contracts are examples of contracts with bugs and vulnerabilities to practice your hacking skills.
 // DO NOT USE THEM OR GET INSPIRATION FROM THEM TO MAKE CODE USED IN PRODUCTION.
 // You are required to find vulnerabilities and problem in the contract.
 // The goal of this challenge is to update the Proxy contract from the TokenV1 to the TokenV2 contract.
