@@ -192,48 +192,48 @@ contract LinearBondedCurve {
 /// @dev Contract to create coffers, deposit and withdraw money from them.
 contract Coffers {
     struct Coffer {
-        uint256 nbSlots;
+        uint256 numberOfSlots;
         mapping(uint256 => uint256) slots;
     }
 
     mapping(address => Coffer) public coffers;
 
-    /// @dev Creates coffers.
-    /// @param _slots The amount of slots the coffer will have.
-    function createCoffer(uint256 _slots) external {
+    /// @dev Creates a coffer with the specified number of slots for the caller.
+    /// @param numberOfSlots The number of slots the coffer will have.
+    function createCoffer(uint256 numberOfSlots) external {
         Coffer storage coffer = coffers[msg.sender];
-        require(coffer.nbSlots == 0, "Coffer already created");
-        coffer.nbSlots = _slots;
+        require(coffer.numberOfSlots == 0, "Coffer already created");
+        coffer.numberOfSlots = numberOfSlots;
     }
 
-    /// @dev Deposits money into one's coffer slot.
-    /// @param _owner The owner of the coffer.
-    /// @param _slot The slot to deposit money into.
-    function deposit(address _owner, uint256 _slot) external payable {
-        Coffer storage coffer = coffers[_owner];
-        require(_slot < coffer.nbSlots);
-        coffer.slots[_slot] += msg.value;
+    /// @dev Deposits money into the specified coffer slot.
+    /// @param owner The owner of the coffer.
+    /// @param slot The slot to deposit money into.
+    function deposit(address owner, uint256 slot) external payable {
+        Coffer storage coffer = coffers[owner];
+        require(slot < coffer.numberOfSlots, "Invalid slot");
+        coffer.slots[slot] += msg.value;
     }
 
-    /// @dev Withdraws all the money from one's coffer slot.
-    /// @param _slot The slot to withdraw money from.
-    function withdraw(uint256 _slot) external {
+    /// @dev Withdraws all the money from the specified coffer slot.
+    /// @param slot The slot to withdraw money from.
+    function withdraw(uint256 slot) external {
         Coffer storage coffer = coffers[msg.sender];
-        require(_slot < coffer.nbSlots);
-        uint256 ethToReceive = coffer.slots[_slot];
-        coffer.slots[_slot] = 0;
+        require(slot < coffer.numberOfSlots, "Invalid slot");
+        uint256 ethToReceive = coffer.slots[slot];
+        coffer.slots[slot] = 0;
         (bool success,) = msg.sender.call{value: ethToReceive}("");
         require(success, "Transfer failed");
     }
 
-    /// @dev Closes an account withdrawing all the money.
-    function closeAccount() external {
+    /// @dev Closes the coffer and withdraws all the money from all slots.
+    function closeCoffer() external {
         Coffer storage coffer = coffers[msg.sender];
         uint256 amountToSend;
-        for (uint256 i = 0; i < coffer.nbSlots; ++i) {
+        for (uint256 i = 0; i < coffer.numberOfSlots; ++i) {
             amountToSend += coffer.slots[i];
         }
-        coffer.nbSlots = 0;
+        coffer.numberOfSlots = 0;
         (bool success,) = msg.sender.call{value: amountToSend}("");
         require(success, "Transfer failed");
     }
