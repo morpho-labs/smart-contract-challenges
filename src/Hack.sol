@@ -747,3 +747,89 @@ contract RewardsDistributor {
         require(success, "Transfer failed");
     }
 }
+
+/* Exercise 17 */
+
+/// @dev This contract enables users to buy and sell tokens using the x * y = k formula,
+///      where tokens are used to purchase tickets.
+///      The price of a ticket is the equivalent of `TICKET_PRICE_IN_ETH` Ether in token.
+contract Ticketing {
+    address public immutable owner;
+    uint256 public immutable TICKET_PRICE_IN_ETH;
+    uint256 public immutable VIRTRUAL_RESERVE_ETH;
+    uint256 public immutable k;
+
+    mapping(address => uint256) public balances;
+    mapping(address => uint256) public tickets;
+
+    /// @dev We assume that the values of the different parameters are big enough to minimize the impact of rounding errors.
+    /// @param ticketPriceInEth The price of a ticket in Ether.
+    /// @param virtualReserveEth The virtual reserve of Ether in the contract.
+    /// @param totalSupply The total supply of tokens.
+    constructor(uint256 ticketPriceInEth, uint256 virtualReserveEth, uint256 totalSupply) {
+        require(virtualReserveEth > ticketPriceInEth, "Virtual reserve must be greater than ticket price");
+
+        owner = msg.sender;
+        TICKET_PRICE_IN_ETH = ticketPriceInEth;
+        VIRTRUAL_RESERVE_ETH = virtualReserveEth;
+        k = virtualReserveEth * totalSupply;
+        balances[address(this)] = totalSupply;
+    }
+
+    /// @notice Buy tokens by sending Ether.
+    /// @dev The amount out is determined using the formula: (x + dx) * (y - dy) = k.
+    /// @param amountOutMin The minimum amount of tokens expected to receive
+    /// @return amountOut The amount of tokens received
+    function buyToken(uint256 amountOutMin) external payable returns (uint256 amountOut) {
+        amountOut = reserveToken() - k / (reserveEth() + msg.value);
+        require(amountOut >= amountOutMin, "Insufficient tokens received");
+        balances[address(this)] -= amountOut;
+        balances[msg.sender] += amountOut;
+    }
+
+    /// @notice Sell tokens in exchange for Ether.
+    /// @dev The amount out is determined using the formula: (x - dx) * (y + dy) = k.
+    /// @param amountIn The amount of tokens to sell
+    /// @param amountOutMin The minimum amount of Ether expected to receive
+    /// @return amountOut The amount of Ether received
+    function sellToken(uint256 amountIn, uint256 amountOutMin) external returns (uint256 amountOut) {
+        amountOut = reserveEth() - k / (reserveToken() + amountIn);
+        require(amountOut >= amountOutMin, "Insufficient Ether received");
+        balances[msg.sender] -= amountIn;
+        balances[address(this)] += amountIn;
+
+        (bool success,) = msg.sender.call{value: amountOut}("");
+        require(success, "Transfer failed");
+    }
+
+    /// @notice Get the effective token balance available for token swaps.
+    /// @return The effective token balance available for token swaps.
+    function reserveEth() internal view returns (uint256) {
+        return address(this).balance - msg.value + VIRTRUAL_RESERVE_ETH;
+    }
+
+    /// @notice Get the effective Ether balance available for token swaps.
+    /// @dev This function calculates the effective Ether balance by subtracting the value sent in the current transaction and adding the virtual reserve.
+    /// @return The effective Ether balance available for token swaps.
+    function reserveToken() internal view returns (uint256) {
+        return balances[address(this)];
+    }
+
+    /// @notice Get the current ticket price.
+    /// @dev The price of a ticket is determined by how much tokens must be sold to obtain `TICKET_PRICE_IN_ETH` Ether.
+    ///      Like in the function `sellToken`, the following formula is used: (x - dx) * (y + dy) = k.
+    /// @return The current ticket price in Ether
+    function ticketPrice() public view returns (uint256) {
+        return k / (reserveEth() - TICKET_PRICE_IN_ETH) - reserveToken();
+    }
+
+    /// @notice Buy a ticket.
+    /// @param maxPrice The maximum price the buyer is willing to pay for a ticket
+    function buyTicket(uint256 maxPrice) external {
+        uint256 price = ticketPrice();
+        require(price <= maxPrice, "Ticket price exceeds the maximum limit");
+        balances[msg.sender] -= price;
+        balances[owner] += price;
+        tickets[msg.sender]++;
+    }
+}
