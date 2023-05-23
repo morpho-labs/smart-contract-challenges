@@ -310,17 +310,15 @@ contract Resolver {
 
     /// @dev Pays the reward to the winner. Reimburses the surplus deposit for both parties if there was one.
     /// @param _winner The side that is eligible to a reward according to owner.
-    function payReward(Side _winner) public {
+    function declareWinner(Side _winner) public {
         require(declared != true, "Rewards already paid");
         require(msg.sender == owner, "Only owner allowed");
         declared = true;
 
         uint256 rewardSent = reward;
 
-        bool success;
-
         // Pays the winner. Note that if no one put a deposit for the winning side, the reward will be burnt.
-        (success,) = sides[uint256(_winner)].call{value: rewardSent}("");
+        (bool success,) = sides[uint256(_winner)].call{value: rewardSent}("");
         require(success, "Transfer failed");
 
         // Reimburse the surplus deposit if there was one.
