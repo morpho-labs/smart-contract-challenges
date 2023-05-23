@@ -650,12 +650,12 @@ contract LotteryParty {
         rounds[_lotteryIndex].rewards = msg.value;
     }
 
-    /// @dev Allows the participation of a set of addresses for a specific round.
+    /// @dev Set the winning number. It is chosen randomly off-chain by the trusted owner.
     /// @param _lotteryIndex The index of the round concerned.
-    /// @param winningNumber The set of addresses allowed to participate.
-    function setWinningNumberAtRound(uint256 _lotteryIndex, uint256 winningNumber) external onlyOwner {
-        require(winningNumber < rounds[_lotteryIndex].ticketNumber);
-        rounds[_lotteryIndex].winningNumber = winningNumber;
+    /// @param _winningNumber The winning number of the lottery.
+    function setWinningNumberAtRound(uint256 _lotteryIndex, uint256 _winningNumber) external onlyOwner {
+        require(_winningNumber < rounds[_lotteryIndex].ticketNumber);
+        rounds[_lotteryIndex].winningNumber = _winningNumber;
     }
 
     /// @dev Withdraws rewards of a round.
@@ -677,9 +677,9 @@ contract LotteryParty {
         }
     }
 
-    /// @dev Delete all the rounds created.
+    /// @dev Delete the selected round.
     /// @param _lotteryIndex The index of the round concerned.
-    function clearRounds(uint256 _lotteryIndex) external onlyOwner {
+    function clearRound(uint256 _lotteryIndex) external onlyOwner {
         if (rounds[_lotteryIndex].rewards == 0) {
             delete rounds[_lotteryIndex];
         }
