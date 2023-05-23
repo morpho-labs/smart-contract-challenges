@@ -630,60 +630,62 @@ contract LotteryParty {
     }
 
     /// @dev Creates new rounds.
-    /// @param _numberOfRounds The number of rounds to create.
-    function createNewLottery(uint256 _numberOfRounds) external {
-        for (uint256 i = 0; i < _numberOfRounds; i++) {
+    /// @param numberOfRounds The number of rounds to create.
+    function createNewLotteries(uint256 numberOfRounds) external {
+        for (uint256 i = 0; i < numberOfRounds; i++) {
             rounds.push();
         }
     }
 
     /// @dev Buys a ticket for a participant.
-    /// @param _lotteryIndex The index of the round concerned.
-    function buyTicketForLottery(uint256 _lotteryIndex) external payable {
+    /// @param lotteryIndex The index of the round concerned.
+    function buyTicketForLottery(uint256 lotteryIndex) external payable {
         require(msg.value == 1 ether, "wrong value");
-        rounds[_lotteryIndex].ticketDistribution[msg.sender].push(rounds[_lotteryIndex].ticketNumber);
-        rounds[_lotteryIndex].ticketNumber++;
+        rounds[lotteryIndex].ticketNumber++;
+        rounds[lotteryIndex].ticketDistribution[msg.sender].push(rounds[lotteryIndex].ticketNumber);
     }
 
     /// @dev Set the reward at a specific round.
-    /// @param _lotteryIndex The index of the round concerned by the reward.
-    function setRewardsAtRound(uint256 _lotteryIndex) external payable onlyOwner {
-        require(rounds[_lotteryIndex].rewards == 0);
-        rounds[_lotteryIndex].rewards = msg.value;
+    /// @param lotteryIndex The index of the round concerned by the reward.
+    function setRewardsAtRound(uint256 lotteryIndex) external payable onlyOwner {
+        require(rounds[lotteryIndex].rewards == 0);
+        rounds[lotteryIndex].rewards = msg.value;
     }
 
     /// @dev Set the winning number. It is chosen randomly off-chain by the trusted owner.
-    /// @param _lotteryIndex The index of the round concerned.
-    /// @param _winningNumber The winning number of the lottery.
-    function setWinningNumberAtRound(uint256 _lotteryIndex, uint256 _winningNumber) external onlyOwner {
-        require(_winningNumber < rounds[_lotteryIndex].ticketNumber);
-        rounds[_lotteryIndex].winningNumber = _winningNumber;
+    /// @param lotteryIndex The index of the round concerned.
+    /// @param winningNumber The winning number of the lottery.
+    function setWinningNumberAtRound(uint256 lotteryIndex, uint256 winningNumber) external onlyOwner {
+        require(winningNumber <= rounds[lotteryIndex].ticketNumber);
+        require(winningNumber != 0);
+        rounds[lotteryIndex].winningNumber = winningNumber;
     }
 
     /// @dev Withdraws rewards of a round.
-    /// @param _lotteryIndex The index of the round concerned.
-    function withdrawRewards(uint256 _lotteryIndex) external {
-        uint256[] memory numbers = rounds[_lotteryIndex].ticketDistribution[msg.sender];
-        uint256 winningTicket = rounds[_lotteryIndex].winningNumber;
-        bool success;
+    /// @param lotteryIndex The index of the round concerned.
+    function withdrawRewards(uint256 lotteryIndex) external {
+        uint256 winningTicket = rounds[lotteryIndex].winningNumber;
+        require(winningTicket != 0, "Incorrect winning ticket");
+
+        uint256[] memory numbers = rounds[lotteryIndex].ticketDistribution[msg.sender];
+
+        uint256 amount = rounds[lotteryIndex].rewards;
+        rounds[lotteryIndex].rewards = 0;
+
         for (uint256 i = 0; i < numbers.length; i++) {
             if (numbers[i] == winningTicket) {
-                success = true;
+                (bool success,) = msg.sender.call{value: amount}("");
+                require(success, "Transfer failed");
+                break;
             }
-        }
-        uint256 amount = rounds[_lotteryIndex].rewards;
-        rounds[_lotteryIndex].rewards = 0;
-        if (success) {
-            (success,) = msg.sender.call{value: amount}("");
-            require(success, "Transfer failed");
         }
     }
 
     /// @dev Delete the selected round.
-    /// @param _lotteryIndex The index of the round concerned.
-    function clearRound(uint256 _lotteryIndex) external onlyOwner {
-        if (rounds[_lotteryIndex].rewards == 0) {
-            delete rounds[_lotteryIndex];
+    /// @param lotteryIndex The index of the round concerned.
+    function clearRound(uint256 lotteryIndex) external onlyOwner {
+        if (rounds[lotteryIndex].rewards == 0) {
+            delete rounds[lotteryIndex];
         }
     }
 
