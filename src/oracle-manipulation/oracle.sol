@@ -34,7 +34,7 @@ contract LinearPool {
         return _amount;
     }
 
-    function getOracle() public view returns (uint256) {
+    function getPrice() public view returns (uint256) {
         return address(this).balance / token.totalSupply();
     }
 }
