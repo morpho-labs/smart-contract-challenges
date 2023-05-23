@@ -752,28 +752,28 @@ contract RewardsDistributor {
 
 /// @dev This contract enables users to buy and sell tokens using the x * y = k formula,
 ///      where tokens are used to purchase tickets.
-///      The price of a ticket is the equivalent of `ticketPriceInEth` Ether in token.
+///      The price of a ticket is the equivalent of `_ticketPriceInEth` Ether in token.
 ///      The objective for users is to purchase tickets, which can be used as an entry pass for an event or to gain access to a service.
 contract Ticketing {
-    address public immutable owner;
-    uint256 public immutable ticketPriceInEth;
-    uint256 public immutable virtualReserveEth;
-    uint256 public immutable k;
+    address public immutable _owner;
+    uint256 public immutable _ticketPriceInEth;
+    uint256 public immutable _virtualReserveEth;
+    uint256 public immutable _k;
 
     mapping(address => uint256) public balances;
     mapping(address => uint256) public tickets;
 
     /// @dev We assume that the values of the different parameters are big enough to minimize the impact of rounding errors.
-    /// @param _ticketPriceInEth The price of a ticket in Ether.
-    /// @param _virtualReserveEth The virtual reserve of Ether in the contract.
+    /// @param ticketPriceInEth The price of a ticket in Ether.
+    /// @param virtualReserveEth The virtual reserve of Ether in the contract.
     /// @param totalSupply The total supply of tokens.
-    constructor(uint256 _ticketPriceInEth, uint256 _virtualReserveEth, uint256 totalSupply) {
-        require(_virtualReserveEth > _ticketPriceInEth, "Virtual reserve must be greater than ticket price");
+    constructor(uint256 ticketPriceInEth, uint256 virtualReserveEth, uint256 totalSupply) {
+        require(virtualReserveEth > ticketPriceInEth, "Virtual reserve must be greater than ticket price");
 
-        owner = msg.sender;
-        ticketPriceInEth = _ticketPriceInEth;
-        virtualReserveEth = _virtualReserveEth;
-        k = _virtualReserveEth * totalSupply;
+        _owner = msg.sender;
+        _ticketPriceInEth = ticketPriceInEth;
+        _virtualReserveEth = virtualReserveEth;
+        _k = virtualReserveEth * totalSupply;
         balances[address(this)] = totalSupply;
     }
 
@@ -782,7 +782,7 @@ contract Ticketing {
     /// @param amountOutMin The minimum amount of tokens expected to receive.
     /// @return amountOut The amount of tokens received.
     function buyToken(uint256 amountOutMin) external payable returns (uint256 amountOut) {
-        amountOut = reserveToken() - k / (reserveEth() + msg.value);
+        amountOut = reserveToken() - _k / (reserveEth() + msg.value);
         require(amountOut >= amountOutMin, "Insufficient tokens received");
         balances[address(this)] -= amountOut;
         balances[msg.sender] += amountOut;
@@ -794,7 +794,7 @@ contract Ticketing {
     /// @param amountOutMin The minimum amount of Ether expected to receive.
     /// @return amountOut The amount of Ether received.
     function sellToken(uint256 amountIn, uint256 amountOutMin) external returns (uint256 amountOut) {
-        amountOut = reserveEth() - k / (reserveToken() + amountIn);
+        amountOut = reserveEth() - _k / (reserveToken() + amountIn);
         require(amountOut >= amountOutMin, "Insufficient Ether received");
         balances[msg.sender] -= amountIn;
         balances[address(this)] += amountIn;
@@ -807,7 +807,7 @@ contract Ticketing {
     /// @dev This function calculates the effective Ether balance by subtracting the value sent in the current transaction and adding the virtual reserve.
     /// @return The effective Ether balance available for token swaps.
     function reserveEth() internal view returns (uint256) {
-        return address(this).balance - msg.value + virtualReserveEth;
+        return address(this).balance - msg.value + _virtualReserveEth;
     }
 
     /// @notice Get the effective token balance available for token swaps.
@@ -817,11 +817,11 @@ contract Ticketing {
     }
 
     /// @notice Get the current ticket price.
-    /// @dev The price of a ticket is determined by how much tokens must be sold to obtain `ticketPriceInEth` Ether.
+    /// @dev The price of a ticket is determined by how much tokens must be sold to obtain `_ticketPriceInEth` Ether.
     ///      Like in the function `sellToken`, the following formula is used: (x - dx) * (y + dy) = k.
     /// @return The current ticket price in Ether.
     function ticketPrice() public view returns (uint256) {
-        return k / (reserveEth() - ticketPriceInEth) - reserveToken();
+        return _k / (reserveEth() - _ticketPriceInEth) - reserveToken();
     }
 
     /// @notice Buy a ticket.
@@ -830,7 +830,7 @@ contract Ticketing {
         uint256 price = ticketPrice();
         require(price <= maxPrice, "Ticket price exceeds the maximum limit");
         balances[msg.sender] -= price;
-        balances[owner] += price;
+        balances[_owner] += price;
         tickets[msg.sender]++;
     }
 }
