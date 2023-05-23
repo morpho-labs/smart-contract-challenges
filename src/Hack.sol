@@ -778,8 +778,8 @@ contract Ticketing {
 
     /// @notice Buy tokens by sending Ether.
     /// @dev The amount out is determined using the formula: (x + dx) * (y - dy) = k.
-    /// @param amountOutMin The minimum amount of tokens expected to receive
-    /// @return amountOut The amount of tokens received
+    /// @param amountOutMin The minimum amount of tokens expected to receive.
+    /// @return amountOut The amount of tokens received.
     function buyToken(uint256 amountOutMin) external payable returns (uint256 amountOut) {
         amountOut = reserveToken() - k / (reserveEth() + msg.value);
         require(amountOut >= amountOutMin, "Insufficient tokens received");
@@ -789,9 +789,9 @@ contract Ticketing {
 
     /// @notice Sell tokens in exchange for Ether.
     /// @dev The amount out is determined using the formula: (x - dx) * (y + dy) = k.
-    /// @param amountIn The amount of tokens to sell
-    /// @param amountOutMin The minimum amount of Ether expected to receive
-    /// @return amountOut The amount of Ether received
+    /// @param amountIn The amount of tokens to sell.
+    /// @param amountOutMin The minimum amount of Ether expected to receive.
+    /// @return amountOut The amount of Ether received.
     function sellToken(uint256 amountIn, uint256 amountOutMin) external returns (uint256 amountOut) {
         amountOut = reserveEth() - k / (reserveToken() + amountIn);
         require(amountOut >= amountOutMin, "Insufficient Ether received");
@@ -818,13 +818,13 @@ contract Ticketing {
     /// @notice Get the current ticket price.
     /// @dev The price of a ticket is determined by how much tokens must be sold to obtain `TICKET_PRICE_IN_ETH` Ether.
     ///      Like in the function `sellToken`, the following formula is used: (x - dx) * (y + dy) = k.
-    /// @return The current ticket price in Ether
+    /// @return The current ticket price in Ether.
     function ticketPrice() public view returns (uint256) {
         return k / (reserveEth() - TICKET_PRICE_IN_ETH) - reserveToken();
     }
 
     /// @notice Buy a ticket.
-    /// @param maxPrice The maximum price the buyer is willing to pay for a ticket
+    /// @param maxPrice The maximum price the buyer is willing to pay for a ticket.
     function buyTicket(uint256 maxPrice) external {
         uint256 price = ticketPrice();
         require(price <= maxPrice, "Ticket price exceeds the maximum limit");
