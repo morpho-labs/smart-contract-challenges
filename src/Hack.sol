@@ -752,27 +752,27 @@ contract RewardsDistributor {
 
 /// @dev This contract enables users to buy and sell tokens using the x * y = k formula,
 ///      where tokens are used to purchase tickets.
-///      The price of a ticket is the equivalent of `TICKET_PRICE_IN_ETH` Ether in token.
+///      The price of a ticket is the equivalent of `ticketPriceInEth` Ether in token.
 contract Ticketing {
     address public immutable owner;
-    uint256 public immutable TICKET_PRICE_IN_ETH;
-    uint256 public immutable VIRTUAL_RESERVE_ETH;
+    uint256 public immutable ticketPriceInEth;
+    uint256 public immutable virtualReserveEth;
     uint256 public immutable k;
 
     mapping(address => uint256) public balances;
     mapping(address => uint256) public tickets;
 
     /// @dev We assume that the values of the different parameters are big enough to minimize the impact of rounding errors.
-    /// @param ticketPriceInEth The price of a ticket in Ether.
-    /// @param virtualReserveEth The virtual reserve of Ether in the contract.
+    /// @param _ticketPriceInEth The price of a ticket in Ether.
+    /// @param _virtualReserveEth The virtual reserve of Ether in the contract.
     /// @param totalSupply The total supply of tokens.
-    constructor(uint256 ticketPriceInEth, uint256 virtualReserveEth, uint256 totalSupply) {
-        require(virtualReserveEth > ticketPriceInEth, "Virtual reserve must be greater than ticket price");
+    constructor(uint256 _ticketPriceInEth, uint256 _virtualReserveEth, uint256 totalSupply) {
+        require(_virtualReserveEth > _ticketPriceInEth, "Virtual reserve must be greater than ticket price");
 
         owner = msg.sender;
-        TICKET_PRICE_IN_ETH = ticketPriceInEth;
-        VIRTUAL_RESERVE_ETH = virtualReserveEth;
-        k = virtualReserveEth * totalSupply;
+        ticketPriceInEth = _ticketPriceInEth;
+        virtualReserveEth = _virtualReserveEth;
+        k = _virtualReserveEth * totalSupply;
         balances[address(this)] = totalSupply;
     }
 
@@ -806,7 +806,7 @@ contract Ticketing {
     /// @dev This function calculates the effective Ether balance by subtracting the value sent in the current transaction and adding the virtual reserve.
     /// @return The effective Ether balance available for token swaps.
     function reserveEth() internal view returns (uint256) {
-        return address(this).balance - msg.value + VIRTUAL_RESERVE_ETH;
+        return address(this).balance - msg.value + virtualReserveEth;
     }
 
     /// @notice Get the effective token balance available for token swaps.
@@ -816,11 +816,11 @@ contract Ticketing {
     }
 
     /// @notice Get the current ticket price.
-    /// @dev The price of a ticket is determined by how much tokens must be sold to obtain `TICKET_PRICE_IN_ETH` Ether.
+    /// @dev The price of a ticket is determined by how much tokens must be sold to obtain `ticketPriceInEth` Ether.
     ///      Like in the function `sellToken`, the following formula is used: (x - dx) * (y + dy) = k.
     /// @return The current ticket price in Ether.
     function ticketPrice() public view returns (uint256) {
-        return k / (reserveEth() - TICKET_PRICE_IN_ETH) - reserveToken();
+        return k / (reserveEth() - ticketPriceInEth) - reserveToken();
     }
 
     /// @notice Buy a ticket.
