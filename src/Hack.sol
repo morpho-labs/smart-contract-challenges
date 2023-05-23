@@ -753,6 +753,7 @@ contract RewardsDistributor {
 /// @dev This contract enables users to buy and sell tokens using the x * y = k formula,
 ///      where tokens are used to purchase tickets.
 ///      The price of a ticket is the equivalent of `ticketPriceInEth` Ether in token.
+///      The objective for users is to purchase tickets, which can be used as an entry pass for an event or to gain access to a service.
 contract Ticketing {
     address public immutable owner;
     uint256 public immutable ticketPriceInEth;
