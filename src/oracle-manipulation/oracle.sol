@@ -56,14 +56,14 @@ contract LendingETH {
     }
 
     function withdrawToken(uint256 amount) external {
-        uint256 price = pool.getOracle();
+        uint256 price = pool.getPrice();
         require(deposit[msg.sender] - borrow[msg.sender] / price >= amount);
         pool.token().transfer(msg.sender, amount);
         deposit[msg.sender] -= amount;
     }
 
     function lendETH(uint256 amount) external returns (uint256) {
-        uint256 price = pool.getOracle();
+        uint256 price = pool.getPrice();
         uint256 borrowPower = price * deposit[msg.sender] - borrow[msg.sender];
         if (borrowPower > 0) {
             return 0;
