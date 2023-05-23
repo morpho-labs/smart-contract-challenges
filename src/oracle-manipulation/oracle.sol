@@ -4,7 +4,9 @@ pragma solidity ^0.8.0;
 import {ERC20} from "@solmate/tokens/ERC20.sol";
 
 contract ERC20Real is ERC20 {
-    constructor(string memory _name, string memory _symbol) ERC20(_name, _symbol, 18) {}
+    constructor(string memory _name, string memory _symbol) ERC20(_name, _symbol, 18) {
+        _mint(msg.sender, 1e6);
+    }
 }
 
 contract LinearPool {
@@ -16,11 +18,11 @@ contract LinearPool {
     constructor() payable {
         token = new ERC20Real("Linear Token", "TOK");
         require(msg.value == 1e4);
-        token.transfer(address(this), 1e4);
+        token.transferFrom(msg.sender, address(this), 1e4);
     }
 
     function buy() public payable returns (uint256) {
-        require(msg.value <= 1e4, "Deposit must be non-zero.");
+        require(msg.value > 0, "Deposit must be non-zero.");
         token.transfer(msg.sender, msg.value);
         return msg.value;
     }
