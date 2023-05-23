@@ -35,7 +35,10 @@ contract LinearPool {
     }
 
     function getPrice() public view returns (uint256) {
-        return address(this).balance / token.totalSupply();
+        if (token.balanceOf(address(this)) == 0) {
+            return type(uint256).max;
+        }
+        return address(this).balance / token.balanceOf(address(this));
     }
 }
 
