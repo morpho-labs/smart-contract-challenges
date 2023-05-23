@@ -285,12 +285,9 @@ contract Resolver {
 
     address public owner = msg.sender;
     address[2] public sides;
-
     uint256 public baseDeposit;
     uint256 public reward;
-    Side public winner;
     bool public declared;
-
     uint256[2] public partyDeposits;
 
     /* CONSTRUCTOR */
@@ -311,40 +308,29 @@ contract Resolver {
         partyDeposits[uint256(_side)] = msg.value;
     }
 
-    /// @dev Declares the winner as an owner.
-    ///      Note that in case no one funded for the winner side when the owner makes its transaction, having someone else deposit to get the reward is fine and doesn't affect the mechanism.
-    /// @param _winner The side that is eligible to a reward according to owner.
-    function declareWinner(Side _winner) public {
-        require(msg.sender == owner, "Only owner allowed");
-        require(!declared, "Winner already declared");
-        declared = true;
-        winner = _winner;
-    }
-
     /// @dev Pays the reward to the winner. Reimburses the surplus deposit for both parties if there was one.
-    function payReward() public {
-        require(declared, "The winner is not declared");
-        uint256 depositA = partyDeposits[0];
-        uint256 depositB = partyDeposits[1];
+    /// @param _winner The side that is eligible to a reward according to owner.
+    function payReward(Side _winner) public {
+        require(declared != true, "Rewards already paid");
+        require(msg.sender == owner, "Only owner allowed");
+        declared = true;
 
         uint256 rewardSent = reward;
-        reward = 0;
-        partyDeposits[0] = 0;
-        partyDeposits[1] = 0;
+
         bool success;
 
         // Pays the winner. Note that if no one put a deposit for the winning side, the reward will be burnt.
-        (success,) = sides[uint256(winner)].call{value: rewardSent}("");
+        (success,) = sides[uint256(_winner)].call{value: rewardSent}("");
         require(success, "Transfer failed");
 
         // Reimburse the surplus deposit if there was one.
-        if (depositA > baseDeposit && sides[0] != address(0)) {
-            (success,) = sides[0].call{value: depositA - baseDeposit}("");
+        if (partyDeposits[0] > baseDeposit && sides[0] != address(0)) {
+            (success,) = sides[0].call{value: partyDeposits[0] - baseDeposit}("");
             require(success, "Transfer failed");
         }
 
-        if (depositB > baseDeposit && sides[1] != address(0)) {
-            (success,) = sides[1].call{value: depositB - baseDeposit}("");
+        if (partyDeposits[1] > baseDeposit && sides[1] != address(0)) {
+            (success,) = sides[1].call{value: partyDeposits[1] - baseDeposit}("");
             require(success, "Transfer failed");
         }
     }
