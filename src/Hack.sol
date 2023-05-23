@@ -756,7 +756,7 @@ contract RewardsDistributor {
 contract Ticketing {
     address public immutable owner;
     uint256 public immutable TICKET_PRICE_IN_ETH;
-    uint256 public immutable VIRTRUAL_RESERVE_ETH;
+    uint256 public immutable VIRTUAL_RESERVE_ETH;
     uint256 public immutable k;
 
     mapping(address => uint256) public balances;
@@ -771,7 +771,7 @@ contract Ticketing {
 
         owner = msg.sender;
         TICKET_PRICE_IN_ETH = ticketPriceInEth;
-        VIRTRUAL_RESERVE_ETH = virtualReserveEth;
+        VIRTUAL_RESERVE_ETH = virtualReserveEth;
         k = virtualReserveEth * totalSupply;
         balances[address(this)] = totalSupply;
     }
@@ -802,15 +802,15 @@ contract Ticketing {
         require(success, "Transfer failed");
     }
 
-    /// @notice Get the effective token balance available for token swaps.
-    /// @return The effective token balance available for token swaps.
-    function reserveEth() internal view returns (uint256) {
-        return address(this).balance - msg.value + VIRTRUAL_RESERVE_ETH;
-    }
-
     /// @notice Get the effective Ether balance available for token swaps.
     /// @dev This function calculates the effective Ether balance by subtracting the value sent in the current transaction and adding the virtual reserve.
     /// @return The effective Ether balance available for token swaps.
+    function reserveEth() internal view returns (uint256) {
+        return address(this).balance - msg.value + VIRTUAL_RESERVE_ETH;
+    }
+
+    /// @notice Get the effective token balance available for token swaps.
+    /// @return The effective token balance available for token swaps.
     function reserveToken() internal view returns (uint256) {
         return balances[address(this)];
     }
