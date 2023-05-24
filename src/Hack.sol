@@ -115,19 +115,19 @@ contract Vault {
 
 /// @dev Contract for locking and unlocking funds using a commitment and password.
 contract Locker {
-    bytes32 commitment;
+    bytes32 _commitment;
 
     /// @dev Locks the funds sent along with this transaction by setting the commitment.
-    /// @param _commitment The commitment to lock the funds.
-    function lock(bytes32 _commitment) external payable {
+    /// @param commitment The commitment to lock the funds.
+    function lock(bytes32 commitment) external payable {
         require(_commitment != bytes32(0), "Invalid commitment");
-        commitment = _commitment;
+        _commitment = commitment;
     }
 
     /// @dev Unlocks the funds by comparing the provided password with the commitment.
-    /// @param _password The password to unlock the funds.
-    function unlock(string calldata _password) external {
-        require(keccak256(abi.encode(_password)) == commitment, "Invalid password");
+    /// @param password The password to unlock the funds.
+    function unlock(string calldata password) external {
+        require(keccak256(abi.encode(password)) == _commitment, "Invalid password");
         (bool success,) = msg.sender.call{value: address(this).balance}("");
         require(success, "Transfer failed");
     }
