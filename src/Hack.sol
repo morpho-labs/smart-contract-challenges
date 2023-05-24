@@ -145,11 +145,11 @@ contract SimpleToken {
     }
 
     /// @dev Sends token.
-    /// @param _recipient The recipient.
-    /// @param _amount The amount to send.
-    function sendToken(address _recipient, int256 _amount) public {
-        balances[msg.sender] -= _amount;
-        balances[_recipient] += _amount;
+    /// @param recipient The recipient.
+    /// @param amount The amount to send.
+    function sendToken(address recipient, int256 amount) public {
+        balances[msg.sender] -= amount;
+        balances[recipient] += amount;
     }
 }
 
