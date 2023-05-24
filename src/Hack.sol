@@ -169,21 +169,21 @@ contract LinearBondedCurve {
     }
 
     /// @dev Sells token. The price of it is linear to the supply.
-    /// @param _amount The amount of tokens to sell.
-    function sell(uint256 _amount) public {
-        uint256 ethToReceive = ((1e18 + totalSupply) * _amount) / 1e18;
-        balances[msg.sender] -= _amount;
-        totalSupply -= _amount;
+    /// @param amount The amount of tokens to sell.
+    function sell(uint256 amount) public {
+        uint256 ethToReceive = ((1e18 + totalSupply) * amount) / 1e18;
+        balances[msg.sender] -= amount;
+        totalSupply -= amount;
         (bool success,) = msg.sender.call{value: ethToReceive}("");
         require(success, "Transfer failed");
     }
 
     /// @dev Sends token.
-    /// @param _recipient The recipient.
-    /// @param _amount The amount to send.
-    function sendToken(address _recipient, uint256 _amount) public {
-        balances[msg.sender] -= _amount;
-        balances[_recipient] += _amount;
+    /// @param recipient The recipient.
+    /// @param amount The amount to send.
+    function sendToken(address recipient, uint256 amount) public {
+        balances[msg.sender] -= amount;
+        balances[recipient] += amount;
     }
 }
 
