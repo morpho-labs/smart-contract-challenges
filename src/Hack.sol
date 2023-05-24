@@ -241,31 +241,34 @@ contract Coffers {
 
 /* Exercise 9 */
 
-/// @dev Contract for simple coffer to deposit to and withdraw from.
-contract CommonCoffers {
-    mapping(address => uint256) public coffers;
-    uint256 public scalingFactor;
+/// @dev Contract of a fund that follows inflation through an index.
+contract InflationFund {
+    uint256 totalSupply;
+    mapping(address => uint256) public scaledBalances;
+    uint256 public inflationIndex = 1e16;
 
-    /// @dev Deposits money in one's coffer.
-    /// @param _owner The coffer to deposit money on.
-    function deposit(address _owner) external payable {
-        if (scalingFactor != 0) {
-            uint256 toAdd = (scalingFactor * msg.value) / (address(this).balance - msg.value);
-            coffers[_owner] += toAdd;
-            scalingFactor += toAdd;
-        } else {
-            scalingFactor = 100;
-            coffers[_owner] = 100;
-        }
+    /// @dev Provides ethers to the contract and updates the index to follow inflation.
+    /// @param newIndex The new index for the fund.
+    function updateIndex(uint256 newIndex) external payable {
+        require(newIndex >= inflationIndex, "Inflation");
+        require(msg.value >= (newIndex - inflationIndex) * totalSupply, "Not enough ethers provided");
+        inflationIndex = newIndex;
     }
 
-    /// @dev Withdraws all of the money from one's coffer.
-    /// @param _amount The amount to withdraw from one's coffer.
-    function withdraw(uint256 _amount) external {
-        uint256 toRemove = (scalingFactor * _amount) / address(this).balance;
-        coffers[msg.sender] -= toRemove;
-        scalingFactor -= toRemove;
-        (bool success,) = msg.sender.call{value: _amount}("");
+    /// @dev Deposits some ethers to the inflation fund.
+    function deposit() external payable {
+        uint256 toAdd = msg.value / inflationIndex;
+        scaledBalances[msg.sender] += toAdd;
+        totalSupply += toAdd;
+    }
+
+    /// @dev Withdraws some ethers of the inflation fund.
+    /// @param amount The amount that the user wants to withdraw.
+    function withdraw(uint256 amount) external {
+        uint256 toRemove = amount / inflationIndex;
+        scaledBalances[msg.sender] -= toRemove;
+        totalSupply -= toRemove;
+        (bool success,) = msg.sender.call{value: amount}("");
         require(success, "Transfer failed");
     }
 }
@@ -282,12 +285,9 @@ contract Resolver {
 
     address public owner = msg.sender;
     address[2] public sides;
-
     uint256 public baseDeposit;
     uint256 public reward;
-    Side public winner;
     bool public declared;
-
     uint256[2] public partyDeposits;
 
     /// @param _baseDeposit The deposit a party has to pay. Note that it is greater than the reward.
@@ -306,40 +306,27 @@ contract Resolver {
         partyDeposits[uint256(_side)] = msg.value;
     }
 
-    /// @dev Declares the winner as an owner.
-    ///      Note that in case no one funded for the winner side when the owner makes its transaction, having someone else deposit to get the reward is fine and doesn't affect the mechanism.
+    /// @dev Pays the reward to the winner. Reimburses the surplus deposit for both parties if there was one.
     /// @param _winner The side that is eligible to a reward according to owner.
     function declareWinner(Side _winner) public {
+        require(declared != true, "Rewards already paid");
         require(msg.sender == owner, "Only owner allowed");
-        require(!declared, "Winner already declared");
         declared = true;
-        winner = _winner;
-    }
-
-    /// @dev Pays the reward to the winner. Reimburses the surplus deposit for both parties if there was one.
-    function payReward() public {
-        require(declared, "The winner is not declared");
-        uint256 depositA = partyDeposits[0];
-        uint256 depositB = partyDeposits[1];
 
         uint256 rewardSent = reward;
-        reward = 0;
-        partyDeposits[0] = 0;
-        partyDeposits[1] = 0;
-        bool success;
 
         // Pays the winner. Note that if no one put a deposit for the winning side, the reward will be burnt.
-        (success,) = sides[uint256(winner)].call{value: rewardSent}("");
+        (bool success,) = sides[uint256(_winner)].call{value: rewardSent}("");
         require(success, "Transfer failed");
 
         // Reimburse the surplus deposit if there was one.
-        if (depositA > baseDeposit && sides[0] != address(0)) {
-            (success,) = sides[0].call{value: depositA - baseDeposit}("");
+        if (partyDeposits[0] > baseDeposit && sides[0] != address(0)) {
+            (success,) = sides[0].call{value: partyDeposits[0] - baseDeposit}("");
             require(success, "Transfer failed");
         }
 
-        if (depositB > baseDeposit && sides[1] != address(0)) {
-            (success,) = sides[1].call{value: depositB - baseDeposit}("");
+        if (partyDeposits[1] > baseDeposit && sides[1] != address(0)) {
+            (success,) = sides[1].call{value: partyDeposits[1] - baseDeposit}("");
             require(success, "Transfer failed");
         }
     }
@@ -598,18 +585,21 @@ contract PiggyBank {
 
 /* Exercise 15 */
 
-/// @dev This is a game where an Owner considered as TRUSTED can set rounds with rewards.
-///      The Owner allows several users to compete for the rewards. The fastest user gets all the rewards.
-///      The users can propose new rounds but it's up to the Owner to fund them.
-///      The Owner can clear the rounds to create fresh new ones.
-contract WinnerTakesAll {
-    struct Round {
+/// @dev This is a game where an Owner considered as TRUSTED can set many lotteries with rewards.
+///      The Owner chooses the winning number randomly off-chain. It should be within the range [0, ticketNumber].
+///      Frontrunning the reveal of the winning number is impossible as the owner will see only the ticket number of the previous block.
+///      The users can propose new lotteries but it's up to the Owner to fund them.
+///      The Owner can clear the lottery to create fresh new ones.
+contract LotteryParty {
+    struct Lottery {
+        uint256 ticketNumber;
         uint256 rewards;
-        mapping(address => bool) isAllowed;
+        uint256 winningNumber;
+        mapping(address => uint256[]) ticketDistribution;
     }
 
     address public owner;
-    Round[] public rounds;
+    Lottery[] public lotteries;
 
     constructor() {
         owner = msg.sender;
@@ -620,55 +610,74 @@ contract WinnerTakesAll {
         _;
     }
 
-    /// @dev Creates new rounds.
-    /// @param _numberOfRounds The number of rounds to create.
-    function createNewRounds(uint256 _numberOfRounds) external {
-        for (uint256 i = 0; i < _numberOfRounds; i++) {
-            rounds.push();
+    /// @dev Creates new lotteries.
+    /// @param numberOfLotteries The number of lotteries to create.
+    function createNewLotteries(uint256 numberOfLotteries) external {
+        for (uint256 i = 0; i < numberOfLotteries; i++) {
+            lotteries.push();
         }
+    }
+
+    /// @dev Buys a ticket for a participant.
+    /// @param lotteryIndex The index of the round concerned.
+    function buyTicketForLottery(uint256 lotteryIndex) external payable {
+        require(msg.value == 1 ether, "wrong value");
+        uint256 ticketNumber = ++lotteries[lotteryIndex].ticketNumber;
+        lotteries[lotteryIndex].ticketDistribution[msg.sender].push(ticketNumber);
     }
 
     /// @dev Set the reward at a specific round.
-    /// @param _roundIndex The index of the round concerned by the reward.
-    function setRewardsAtRound(uint256 _roundIndex) external payable onlyOwner {
-        require(rounds[_roundIndex].rewards == 0);
-        rounds[_roundIndex].rewards = msg.value;
+    /// @param lotteryIndex The index of the round concerned by the reward.
+    function setRewardsAtRound(uint256 lotteryIndex) external payable onlyOwner {
+        require(lotteries[lotteryIndex].rewards == 0);
+        lotteries[lotteryIndex].rewards = msg.value;
     }
 
-    /// @dev Allows the participation of a set of addresses for a specific round.
-    /// @param _roundIndex The index of the round concerned.
-    /// @param _recipients The set of addresses allowed to participate.
-    function setRewardsAtRoundFor(uint256 _roundIndex, address[] calldata _recipients) external onlyOwner {
-        for (uint256 i; i < _recipients.length; i++) {
-            rounds[_roundIndex].isAllowed[_recipients[i]] = true;
-        }
-    }
-
-    /// @dev Checks if an address can participate in this round.
-    /// @param _roundIndex The index of the round to be checked.
-    /// @param _recipient The address whose authorization is to be checked.
-    function isAllowedAt(uint256 _roundIndex, address _recipient) external view returns (bool) {
-        return rounds[_roundIndex].isAllowed[_recipient];
+    /// @dev Set the winning number. It is chosen randomly off-chain by the trusted owner.
+    /// @param lotteryIndex The index of the round concerned.
+    /// @param winningNumber The winning number of the lottery.
+    function setWinningNumberAtRound(uint256 lotteryIndex, uint256 winningNumber) external onlyOwner {
+        require(winningNumber <= lotteries[lotteryIndex].ticketNumber, "Incorrect winning ticket");
+        require(winningNumber != 0, "Incorrect winning ticket");
+        lotteries[lotteryIndex].winningNumber = winningNumber;
     }
 
     /// @dev Withdraws rewards of a round.
-    /// @param _roundIndex The index of the round concerned.
-    function withdrawRewards(uint256 _roundIndex) external {
-        require(rounds[_roundIndex].isAllowed[msg.sender]);
-        uint256 amount = rounds[_roundIndex].rewards;
-        rounds[_roundIndex].rewards = 0;
-        (bool success,) = msg.sender.call{value: amount}("");
-        require(success, "Transfer failed");
+    /// @param lotteryIndex The index of the round concerned.
+    function withdrawRewards(uint256 lotteryIndex) external {
+        uint256 winningTicket = lotteries[lotteryIndex].winningNumber;
+        require(winningTicket != 0, "Incorrect winning ticket");
+
+        uint256[] memory numbers = lotteries[lotteryIndex].ticketDistribution[msg.sender];
+
+        uint256 amount = lotteries[lotteryIndex].rewards;
+        lotteries[lotteryIndex].rewards = 0;
+
+        for (uint256 i = 0; i < numbers.length; i++) {
+            if (numbers[i] == winningTicket) {
+                (bool success,) = msg.sender.call{value: amount}("");
+                require(success, "Transfer failed");
+                break;
+            }
+        }
     }
 
-    /// @dev Delete all the rounds created.
-    function clearRounds() external onlyOwner {
-        delete rounds;
+    /// @dev Delete the selected round.
+    /// @param lotteryIndex The index of the round concerned.
+    function clearRound(uint256 lotteryIndex) external onlyOwner {
+        if (lotteries[lotteryIndex].rewards == 0) {
+            delete lotteries[lotteryIndex];
+        }
     }
 
     /// @dev Withdraws all the ethers to owner's address.
     function withdrawETH() external onlyOwner {
-        (bool success,) = msg.sender.call{value: address(this).balance}("");
+        uint256 length = lotteries.length;
+        uint256 reward;
+        for (uint256 i; i < length; ++i) {
+            reward += lotteries[i].rewards;
+        }
+        (bool success,) = msg.sender.call{value: address(this).balance - reward}("");
         require(success, "Transfer failed");
     }
 }
@@ -739,5 +748,92 @@ contract RewardsDistributor {
         // Transfer the reward amount to the claimant or admin if the deadline has passed
         (bool success,) = (block.timestamp < deadline ? onBehalf : ADMIN).call{value: REWARD_AMOUNT}("");
         require(success, "Transfer failed");
+    }
+}
+
+/* Exercise 17 */
+
+/// @dev This contract enables users to buy and sell tokens using the x * y = k formula,
+///      where tokens are used to purchase tickets.
+///      The price of a ticket is the equivalent of `_ticketPriceInEth` Ether in token.
+///      The objective for users is to purchase tickets, which can be used as an entry pass for an event or to gain access to a service.
+contract Ticketing {
+    address public immutable _owner;
+    uint256 public immutable _ticketPriceInEth;
+    uint256 public immutable _virtualReserveEth;
+    uint256 public immutable _k;
+
+    mapping(address => uint256) public balances;
+    mapping(address => uint256) public tickets;
+
+    /// @dev We assume that the values of the different parameters are big enough to minimize the impact of rounding errors.
+    /// @param ticketPriceInEth The price of a ticket in Ether.
+    /// @param virtualReserveEth The virtual reserve of Ether in the contract.
+    /// @param totalSupply The total supply of tokens.
+    constructor(uint256 ticketPriceInEth, uint256 virtualReserveEth, uint256 totalSupply) {
+        require(virtualReserveEth > ticketPriceInEth, "Virtual reserve must be greater than ticket price");
+
+        _owner = msg.sender;
+        _ticketPriceInEth = ticketPriceInEth;
+        _virtualReserveEth = virtualReserveEth;
+        _k = virtualReserveEth * totalSupply;
+        balances[address(this)] = totalSupply;
+    }
+
+    /// @notice Buy tokens by sending Ether.
+    /// @dev The amount out is determined using the formula: (x + dx) * (y - dy) = k.
+    /// @param amountOutMin The minimum amount of tokens expected to receive.
+    /// @return amountOut The amount of tokens received.
+    function buyToken(uint256 amountOutMin) external payable returns (uint256 amountOut) {
+        amountOut = reserveToken() - _k / (reserveEth() + msg.value);
+        require(amountOut >= amountOutMin, "Insufficient tokens received");
+        balances[address(this)] -= amountOut;
+        balances[msg.sender] += amountOut;
+    }
+
+    /// @notice Sell tokens in exchange for Ether.
+    /// @dev The amount out is determined using the formula: (x - dx) * (y + dy) = k.
+    /// @param amountIn The amount of tokens to sell.
+    /// @param amountOutMin The minimum amount of Ether expected to receive.
+    /// @return amountOut The amount of Ether received.
+    function sellToken(uint256 amountIn, uint256 amountOutMin) external returns (uint256 amountOut) {
+        amountOut = reserveEth() - _k / (reserveToken() + amountIn);
+        require(amountOut >= amountOutMin, "Insufficient Ether received");
+        balances[msg.sender] -= amountIn;
+        balances[address(this)] += amountIn;
+
+        (bool success,) = msg.sender.call{value: amountOut}("");
+        require(success, "Transfer failed");
+    }
+
+    /// @notice Get the effective Ether balance available for token swaps.
+    /// @dev This function calculates the effective Ether balance by subtracting the value sent in the current transaction and adding the virtual reserve.
+    /// @return The effective Ether balance available for token swaps.
+    function reserveEth() internal view returns (uint256) {
+        return address(this).balance - msg.value + _virtualReserveEth;
+    }
+
+    /// @notice Get the effective token balance available for token swaps.
+    /// @return The effective token balance available for token swaps.
+    function reserveToken() internal view returns (uint256) {
+        return balances[address(this)];
+    }
+
+    /// @notice Get the current ticket price.
+    /// @dev The price of a ticket is determined by how much tokens must be sold to obtain `_ticketPriceInEth` Ether.
+    ///      Like in the function `sellToken`, the following formula is used: (x - dx) * (y + dy) = k.
+    /// @return The current ticket price in Ether.
+    function ticketPrice() public view returns (uint256) {
+        return _k / (reserveEth() - _ticketPriceInEth) - reserveToken();
+    }
+
+    /// @notice Buy a ticket.
+    /// @param maxPrice The maximum price the buyer is willing to pay for a ticket.
+    function buyTicket(uint256 maxPrice) external {
+        uint256 price = ticketPrice();
+        require(price <= maxPrice, "Ticket price exceeds the maximum limit");
+        balances[msg.sender] -= price;
+        balances[_owner] += price;
+        tickets[msg.sender]++;
     }
 }
