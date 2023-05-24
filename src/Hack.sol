@@ -641,8 +641,8 @@ contract LotteryParty {
     /// @param lotteryIndex The index of the round concerned.
     function buyTicketForLottery(uint256 lotteryIndex) external payable {
         require(msg.value == 1 ether, "wrong value");
-        lotteries[lotteryIndex].ticketNumber++;
-        lotteries[lotteryIndex].ticketDistribution[msg.sender].push(lotteries[lotteryIndex].ticketNumber);
+        uint256 ticketNumber = ++lotteries[lotteryIndex].ticketNumber;
+        lotteries[lotteryIndex].ticketDistribution[msg.sender].push(ticketNumber);
     }
 
     /// @dev Set the reward at a specific round.
