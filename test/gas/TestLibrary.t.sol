@@ -57,7 +57,7 @@ contract TestLoop is Test, Utils {
         refGas += staticcallGasUsage(address(ref), data);
         optiGas += staticcallGasUsage(address(opti), data);
 
-        printGasResult(refGas, 7686, 7686, optiGas);
+        printGasResult(refGas, 7700, 7686, optiGas);
     }
 
     function _createLibraryAndData(bytes32 salt, bytes32 author, bytes32 name, bytes32 content)

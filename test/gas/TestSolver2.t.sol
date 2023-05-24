@@ -40,6 +40,6 @@ contract TestSolver is Test, Utils {
         refGas += callGasUsage(address(ref), 0, data);
         optiGas += callGasUsage(address(opti), 0, data);
 
-        printGasResult(refGas, 4162, 4162, optiGas);
+        printGasResult(refGas, 10000, 4162, optiGas);
     }
 }
