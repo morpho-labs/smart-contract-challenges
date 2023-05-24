@@ -244,7 +244,7 @@ contract Coffers {
 
 /* Exercise 9 */
 
-/// @dev Contract of a fund that follows inflation throuhgh an index.
+/// @dev Contract of a fund that follows inflation through an index.
 contract InflationFund {
     uint256 totalSupply;
     mapping(address => uint256) public etherBalances;
@@ -254,11 +254,11 @@ contract InflationFund {
         inflationIndex = 1e10;
     }
 
-    /// @dev Provide ethers to the contract and updates the index to follow inflation.
+    /// @dev Provides ethers to the contract and updates the index to follow inflation.
     /// @param newIndex The new index for the fund.
     function updateIndex(uint256 newIndex) external payable {
         require(newIndex >= inflationIndex, "Inflation");
-        require(msg.value >= (newIndex - inflationIndex) * totalSupply, "Not enoug ethers provided");
+        require(msg.value >= (newIndex - inflationIndex) * totalSupply, "Not enough ethers provided");
         inflationIndex = newIndex;
     }
 
