@@ -419,17 +419,6 @@ contract SnapshotToken {
 ///      Note that some players may not reveal and use multiple accounts; this is part of the game and can be used tactically.
 ///      Also note that waiting until the last minute to reveal is also part of the game and can be used tactically (but it would probably cost a lot of gas).
 contract GuessTheAverage {
-    uint256 public immutable start; // Beginning of the game.
-    uint256 public immutable commitDuration; // Duration of the Commit Period.
-    uint256 public immutable revealDuration; // Duration of the Reveal Period.
-    uint256 public cursorWinner; // Cursor of the last winner.
-    uint256 public cursorDistribute; // Cursor of the last distribution of rewards.
-    uint256 public lastDifference; // Last best difference between a guess and the average.
-    uint256 public average; // Average to guess.
-    uint256 public totalBalance; // Total balance of the contract.
-    uint256 public numberOfLosers; // Number of losers in the winners list.
-    Stage public currentStage; // Current Stage.
-
     enum Stage {
         CommitAndRevealPeriod,
         AverageCalculated,
@@ -438,18 +427,29 @@ contract GuessTheAverage {
     }
 
     struct Player {
-        uint256 playerIndex; // Index of the player in the guesses list.
-        bool hasGuessed; // Whether the player has guessed or not.
-        bool hasRevealed; // Whether the player has revealed or not.
-        bytes32 commitment; // Commitment of the player.
+        address player;
+        uint256 guess;
     }
 
-    uint256[] public guesses; // List of players' guesses.
-    address[] public winners; // List of winners to reward.
+    uint256 public immutable start; // Beginning of the game.
+    uint256 public immutable commitDuration; // Duration of the Commit Period.
+    uint256 public immutable revealDuration; // Duration of the Reveal Period.
 
-    mapping(address => Player) public players; // Maps an address to its respective Player status.
-    mapping(uint256 => address) public indexToPlayer; // Maps a guess index to the player who made the guess.
+    uint256 public cursorWinner; // First index of `players` not treated in `findWinner`.
+    uint256 public cursorDistribute; // First index of `pretendants` not treated in `distribute`.
+    uint256 public lastDifference; // Last best difference between a guess and the average.
+    uint256 public average; // Average to guess.
+    uint256 public winnerReward; // Reward for a single winner.
 
+    Stage public currentStage; // Current Stage.
+
+    Player[] public players; // List of players who have participated.
+    address[] public pretendants; // List of participants who may be eligible for winning.
+
+    mapping(address => bytes32) public commitments; // Mapping of players to their commitments.
+
+    /// @param _commitDuration The duration of the commit period.
+    /// @param _revealDuration The duration of the reveal period.
     constructor(uint256 _commitDuration, uint256 _revealDuration) {
         start = block.timestamp;
         commitDuration = _commitDuration;
@@ -459,41 +459,35 @@ contract GuessTheAverage {
     /// @dev Adds the guess for the user.
     /// @param commitment The commitment of the user under the form of `keccak256(abi.encode(msg.sender, number, blindingFactor))`, where the blinding factor is a bytes32.
     function guess(bytes32 commitment) public payable {
-        Player storage player = players[msg.sender];
-
-        require(!player.hasGuessed, "Player has already guessed");
+        require(commitment != bytes32(0), "Commitment must not be zero");
+        require(commitments[msg.sender] == bytes32(0), "Player has already guessed");
         require(msg.value == 1 ether, "Player must send exactly 1 ETH");
         require(
             block.timestamp >= start && block.timestamp <= start + commitDuration,
             "Commit period must have begun and not ended"
         );
 
-        // Store the commitment.
-        player.hasGuessed = true;
-        player.commitment = commitment;
+        commitments[msg.sender] = commitment;
     }
 
     /// @dev Reveals the guess for the user.
     /// @param number The number guessed.
     /// @param blindingFactor Bytes that have been used for the commitment to blind the guess.
     function reveal(uint256 number, bytes32 blindingFactor) public {
-        Player storage player = players[msg.sender];
-
         require(
             block.timestamp >= start + commitDuration && block.timestamp < start + commitDuration + revealDuration,
             "Reveal period must have begun and not ended"
         );
-        require(!player.hasRevealed, "Player has already revealed");
-        require(player.hasGuessed, "Player must have guessed");
-        // Check the hash to prove the player's honesty.
-        require(keccak256(abi.encode(msg.sender, number, blindingFactor)) == player.commitment, "Invalid hash");
 
-        // Update player and guesses.
-        player.hasRevealed = true;
+        bytes32 commitment = commitments[msg.sender];
+        commitments[msg.sender] = bytes32(0);
+
+        require(commitment != bytes32(0), "Player must have guessed");
+        // Check the hash to prove the player's honesty.
+        require(keccak256(abi.encode(msg.sender, number, blindingFactor)) == commitment, "Invalid hash");
+
         average += number;
-        indexToPlayer[guesses.length] = msg.sender;
-        guesses.push(number);
-        player.playerIndex = guesses.length;
+        players.push(Player({player: msg.sender, guess: number}));
     }
 
     /// @dev Finds winners among players who have revealed their guess.
@@ -504,24 +498,24 @@ contract GuessTheAverage {
 
         // If we haven't calculated the average yet, we calculate it.
         if (currentStage < Stage.AverageCalculated) {
-            average /= guesses.length;
-            totalBalance = address(this).balance;
+            average /= players.length;
             lastDifference = type(uint256).max;
             currentStage = Stage.AverageCalculated;
         }
 
-        while (cursorWinner < guesses.length && count > 0) {
+        while (cursorWinner < players.length && count > 0) {
+            Player storage player = players[cursorWinner];
+
             // Avoid overflow.
-            uint256 difference =
-                guesses[cursorWinner] > average ? guesses[cursorWinner] - average : average - guesses[cursorWinner];
+            uint256 difference = player.guess > average ? player.guess - average : average - player.guess;
 
             // Compare the difference with the latest lowest difference.
             if (difference < lastDifference) {
-                numberOfLosers = winners.length;
-                winners.push(indexToPlayer[cursorWinner]);
+                cursorDistribute = pretendants.length;
+                pretendants.push(player.player);
                 lastDifference = difference;
             } else if (difference == lastDifference) {
-                winners.push(indexToPlayer[cursorWinner]);
+                pretendants.push(player.player);
             }
 
             cursorWinner++;
@@ -529,9 +523,9 @@ contract GuessTheAverage {
         }
 
         // If we have passed through the entire array, update currentStage.
-        if (cursorWinner == guesses.length) {
+        if (cursorWinner == players.length) {
+            winnerReward = address(this).balance / (pretendants.length - cursorDistribute);
             currentStage = Stage.WinnersFound;
-            cursorDistribute = numberOfLosers;
         }
     }
 
@@ -540,13 +534,13 @@ contract GuessTheAverage {
     function distribute(uint256 count) public {
         require(currentStage == Stage.WinnersFound, "Winners must have been found");
 
-        while (cursorDistribute < winners.length && count > 0) {
-            // Send ether to the winners. Do not block if one of the accounts cannot receive ETH.
-            winners[cursorDistribute++].call{value: totalBalance / (winners.length - numberOfLosers)}("");
+        // Send ether to the winners. Do not block if one of the accounts cannot receive ETH.
+        while (cursorDistribute < pretendants.length && count > 0) {
+            pretendants[cursorDistribute++].call{value: winnerReward}("");
             count--;
         }
 
-        if (cursorDistribute == winners.length) currentStage = Stage.Distributed;
+        if (cursorDistribute == pretendants.length) currentStage = Stage.Distributed;
     }
 }
 
