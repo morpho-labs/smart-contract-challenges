@@ -18,12 +18,12 @@ contract Store {
     Safe[] public safes;
 
     /// @dev Stores some ETH.
-    function store() public payable {
+    function store() external payable {
         safes.push(Safe({owner: msg.sender, amount: msg.value}));
     }
 
     /// @dev Takes back all the amount stored by the sender.
-    function take() public {
+    function take() external {
         for (uint256 i; i < safes.length; ++i) {
             Safe storage safe = safes[i];
             if (safe.owner == msg.sender && safe.amount != 0) {
@@ -46,14 +46,14 @@ contract DiscountedBuy {
 
     /// @dev Allows a user to buy an object by paying the appropriate price.
     /// @notice The price is calculated as `BASE_PRICE / (1 + objectBought[msg.sender])`.
-    function buy() public payable {
+    function buy() external payable {
         require(msg.value * (1 + objectBought[msg.sender]) == BASE_PRICE, "Incorrect payment amount");
         objectBought[msg.sender]++;
     }
 
     /// @dev Calculates and returns the price of the next object to be purchased.
     /// @return The amount to be paid in wei.
-    function price() public view returns (uint256) {
+    function price() external view returns (uint256) {
         return BASE_PRICE / (1 + objectBought[msg.sender]);
     }
 }
@@ -71,7 +71,7 @@ contract HeadOrTail {
     /// @dev Must be sent 1 ETH.
     ///      Choose Head or Tail to be guessed by the other player.
     /// @param chooseHead True if Head was chosen, false if Tail was chosen.
-    function choose(bool chooseHead) public payable {
+    function choose(bool chooseHead) external payable {
         require(!chosen, "Choice already made");
         require(msg.value == 1 ether, "Incorrect payment amount");
 
@@ -82,7 +82,7 @@ contract HeadOrTail {
 
     /// @dev Guesses the choice of the first party and resolves the Head or Tail Game.
     /// @param guessHead The guess (Head or Tail) of the opposite party.
-    function guess(bool guessHead) public payable {
+    function guess(bool guessHead) external payable {
         require(chosen, "Choice not made yet");
         require(msg.value == 1 ether, "Incorrect payment amount");
 
@@ -99,12 +99,12 @@ contract Vault {
     mapping(address => uint256) public balances;
 
     /// @dev Stores the ETH of the sender in the contract.
-    function store() public payable {
+    function store() external payable {
         balances[msg.sender] += msg.value;
     }
 
     /// @dev Redeems the ETH of the sender in the contract.
-    function redeem() public {
+    function redeem() external {
         (bool success,) = msg.sender.call{value: balances[msg.sender]}("");
         require(success, "Transfer failed");
         balances[msg.sender] = 0;
@@ -147,7 +147,7 @@ contract SimpleToken {
     /// @dev Sends token.
     /// @param recipient The recipient.
     /// @param amount The amount to send.
-    function sendToken(address recipient, int256 amount) public {
+    function sendToken(address recipient, int256 amount) external {
         balances[msg.sender] -= amount;
         balances[recipient] += amount;
     }
@@ -162,7 +162,7 @@ contract LinearBondedCurve {
     uint256 public totalSupply;
 
     /// @dev Buys token. The price is linear to the total supply.
-    function buy() public payable {
+    function buy() external payable {
         uint256 tokenToReceive = (1e18 * msg.value) / (1e18 + totalSupply);
         balances[msg.sender] += tokenToReceive;
         totalSupply += tokenToReceive;
@@ -170,7 +170,7 @@ contract LinearBondedCurve {
 
     /// @dev Sells token. The price of it is linear to the supply.
     /// @param amount The amount of tokens to sell.
-    function sell(uint256 amount) public {
+    function sell(uint256 amount) external {
         uint256 ethToReceive = ((1e18 + totalSupply) * amount) / 1e18;
         balances[msg.sender] -= amount;
         totalSupply -= amount;
@@ -181,7 +181,7 @@ contract LinearBondedCurve {
     /// @dev Sends token.
     /// @param recipient The recipient.
     /// @param amount The amount to send.
-    function sendToken(address recipient, uint256 amount) public {
+    function sendToken(address recipient, uint256 amount) external {
         balances[msg.sender] -= amount;
         balances[recipient] += amount;
     }
@@ -300,7 +300,7 @@ contract Resolver {
 
     /// @dev Makes a deposit to one of the sides.
     /// @param side The side chosen by the party.
-    function deposit(Side side) public payable {
+    function deposit(Side side) external payable {
         require(!declared, "The winner is already declared");
         require(sides[uint256(side)] == address(0), "Side already paid");
         require(msg.value > baseDeposit, "Should cover the base deposit");
@@ -311,7 +311,7 @@ contract Resolver {
 
     /// @dev Pays the reward to the winner. Reimburses the surplus deposit for both parties if there was one.
     /// @param winner The side that is eligible to a reward according to owner.
-    function declareWinner(Side winner) public {
+    function declareWinner(Side winner) external {
         require(!declared, "The winner is already declared");
         require(msg.sender == owner, "Only owner allowed");
 
@@ -356,7 +356,7 @@ contract Registry {
     /// @param name The first name of the user.
     /// @param surname The last name of the user.
     /// @param nonce An arbitrary number to allow multiple users with the same first and last name.
-    function register(string calldata name, string calldata surname, uint256 nonce) public {
+    function register(string calldata name, string calldata surname, uint256 nonce) external {
         require(!isRegistered[name][surname][nonce], "This profile is already registered.");
         isRegistered[name][surname][nonce] = true;
         bytes32 id = keccak256(abi.encodePacked(name, surname, nonce));
@@ -376,7 +376,7 @@ contract SnapshotToken {
     event BalanceUpdated(address indexed user, uint256 oldBalance, uint256 newBalance);
 
     /// @dev Buys tokens at the price of 1 ETH per token.
-    function buyToken() public payable {
+    function buyToken() external payable {
         uint256 balance = balances[msg.sender];
         uint256 newBalance = balance + msg.value / 1 ether;
         balances[msg.sender] = newBalance;
@@ -387,7 +387,7 @@ contract SnapshotToken {
     /// @dev Transfers tokens.
     /// @param to The recipient.
     /// @param value The amount to send.
-    function transfer(address to, uint256 value) public {
+    function transfer(address to, uint256 value) external {
         uint256 oldBalanceFrom = balances[msg.sender];
         uint256 oldBalanceTo = balances[to];
 
@@ -458,7 +458,7 @@ contract GuessTheAverage {
 
     /// @dev Adds the guess for the user.
     /// @param commitment The commitment of the user under the form of `keccak256(abi.encode(msg.sender, number, blindingFactor))`, where the blinding factor is a bytes32.
-    function guess(bytes32 commitment) public payable {
+    function guess(bytes32 commitment) external payable {
         require(commitment != bytes32(0), "Commitment must not be zero");
         require(commitments[msg.sender] == bytes32(0), "Player has already guessed");
         require(msg.value == 1 ether, "Player must send exactly 1 ETH");
@@ -473,7 +473,7 @@ contract GuessTheAverage {
     /// @dev Reveals the guess for the user.
     /// @param number The number guessed.
     /// @param blindingFactor Bytes that have been used for the commitment to blind the guess.
-    function reveal(uint256 number, bytes32 blindingFactor) public {
+    function reveal(uint256 number, bytes32 blindingFactor) external {
         require(
             block.timestamp >= start + commitDuration && block.timestamp < start + commitDuration + revealDuration,
             "Reveal period must have begun and not ended"
@@ -492,7 +492,7 @@ contract GuessTheAverage {
 
     /// @dev Finds winners among players who have revealed their guess.
     /// @param count The number of transactions to execute; executes until the end if set to "0" or a number higher than the number of transactions in the list.
-    function findWinners(uint256 count) public {
+    function findWinners(uint256 count) external {
         require(block.timestamp >= start + commitDuration + revealDuration, "Reveal period must have ended");
         require(currentStage < Stage.WinnersFound, "Winners must not have been found yet");
 
@@ -531,7 +531,7 @@ contract GuessTheAverage {
 
     /// @dev Distributes rewards to winners.
     /// @param count The number of transactions to execute; executes until the end if set to "0" or a number higher than the number of winners in the list.
-    function distribute(uint256 count) public {
+    function distribute(uint256 count) external {
         require(currentStage == Stage.WinnersFound, "Winners must have been found");
 
         // Send ether to the winners. Do not block if one of the accounts cannot receive ETH.
@@ -558,14 +558,14 @@ contract PiggyBank {
     }
 
     /// @dev Deposits 1 ETH in the smart contract
-    function deposit() public payable {
+    function deposit() external payable {
         require(msg.sender == owner, "Only the owner can deposit");
         require(msg.value == 1 ether, "Deposit amount must be 1 ETH");
         require(address(this).balance <= 10 ether, "Deposit limit exceeded");
     }
 
     /// @dev Withdraws the entire smart contract balance
-    function withdraw() public {
+    function withdraw() external {
         require(msg.sender == owner, "Only the owner can withdraw");
         require(address(this).balance == 10 ether, "Cannot withdraw before reaching 10 ETH");
 
