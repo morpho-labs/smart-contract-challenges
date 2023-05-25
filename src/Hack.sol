@@ -283,40 +283,42 @@ contract Resolver {
         B
     }
 
-    address public owner = msg.sender;
-    address[2] public sides;
-    uint256 public baseDeposit;
-    uint256 public reward;
+    address public immutable owner = msg.sender;
+    uint256 public immutable baseDeposit;
+    uint256 public immutable reward;
     bool public declared;
+
+    address[2] public sides;
     uint256[2] public partyDeposits;
 
     /// @param _baseDeposit The deposit a party has to pay. Note that it is greater than the reward.
     constructor(uint256 _baseDeposit) payable {
+        require(_baseDeposit >= msg.value, "Base deposit must be greater than the reward");
         reward = msg.value;
         baseDeposit = _baseDeposit;
     }
 
     /// @dev Makes a deposit to one of the sides.
-    /// @param _side The side chosen by the party.
-    function deposit(Side _side) public payable {
+    /// @param side The side chosen by the party.
+    function deposit(Side side) public payable {
         require(!declared, "The winner is already declared");
-        require(sides[uint256(_side)] == address(0), "Side already paid");
+        require(sides[uint256(side)] == address(0), "Side already paid");
         require(msg.value > baseDeposit, "Should cover the base deposit");
-        sides[uint256(_side)] = msg.sender;
-        partyDeposits[uint256(_side)] = msg.value;
+
+        sides[uint256(side)] = msg.sender;
+        partyDeposits[uint256(side)] = msg.value;
     }
 
     /// @dev Pays the reward to the winner. Reimburses the surplus deposit for both parties if there was one.
-    /// @param _winner The side that is eligible to a reward according to owner.
-    function declareWinner(Side _winner) public {
-        require(declared != true, "Rewards already paid");
+    /// @param winner The side that is eligible to a reward according to owner.
+    function declareWinner(Side winner) public {
+        require(!declared, "The winner is already declared");
         require(msg.sender == owner, "Only owner allowed");
+
         declared = true;
 
-        uint256 rewardSent = reward;
-
         // Pays the winner. Note that if no one put a deposit for the winning side, the reward will be burnt.
-        (bool success,) = sides[uint256(_winner)].call{value: rewardSent}("");
+        (bool success,) = sides[uint256(winner)].call{value: reward}("");
         require(success, "Transfer failed");
 
         // Reimburse the surplus deposit if there was one.
@@ -359,13 +361,8 @@ contract Registry {
         isRegistered[name][surname][nonce] = true;
         bytes32 id = keccak256(abi.encodePacked(name, surname, nonce));
 
-        users[id] = User({
-            account: msg.sender,
-            timestamp: uint64(block.timestamp),
-            name: name,
-            surname: surname,
-            nonce: nonce
-        });
+        users[id] =
+            User({account: msg.sender, timestamp: uint64(block.timestamp), name: name, surname: surname, nonce: nonce});
     }
 }
 
@@ -416,11 +413,11 @@ contract SnapshotToken {
 
 /* Exercise 13 */
 
-/// @dev Each player tries to guess the average of all the player's revealed answers combined.
+/// @dev Each player tries to guess the average of all the players' revealed answers combined.
 ///      They must pay 1 ETH to play.
-///      The winners are those who are the nearest from the average.
-///      Note that some players may not reveal and use multiple accounts, this is part of the game and can be used tactically.
-///      Also note that waiting the last minute to reveal is also part of the game and can be used tactically (but it would probably cost a lot of gas).
+///      The winners are those who are nearest to the average.
+///      Note that some players may not reveal and use multiple accounts; this is part of the game and can be used tactically.
+///      Also note that waiting until the last minute to reveal is also part of the game and can be used tactically (but it would probably cost a lot of gas).
 contract GuessTheAverage {
     uint256 public immutable start; // Beginning of the game.
     uint256 public immutable commitDuration; // Duration of the Commit Period.
@@ -443,26 +440,27 @@ contract GuessTheAverage {
     struct Player {
         uint256 playerIndex; // Index of the player in the guesses list.
         bool hasGuessed; // Whether the player has guessed or not.
-        bool hasReveal; // Whether the player has revealed or not.
-        bytes32 commitment; // commitment of the player.
+        bool hasRevealed; // Whether the player has revealed or not.
+        bytes32 commitment; // Commitment of the player.
     }
 
-    uint256[] public guesses; // List of player's guesses.
+    uint256[] public guesses; // List of players' guesses.
     address[] public winners; // List of winners to reward.
 
     mapping(address => Player) public players; // Maps an address to its respective Player status.
     mapping(uint256 => address) public indexToPlayer; // Maps a guess index to the player who made the guess.
 
-    constructor(uint32 _commitDuration, uint32 _revealDuration) {
+    constructor(uint256 _commitDuration, uint256 _revealDuration) {
         start = block.timestamp;
         commitDuration = _commitDuration;
         revealDuration = _revealDuration;
     }
 
     /// @dev Adds the guess for the user.
-    /// @param _commitment The commitment of the user under the form of keccak256(abi.encode(msg.sender, _number, _blindingFactor) where the blinding factor is a bytes32.
-    function guess(bytes32 _commitment) public payable {
+    /// @param commitment The commitment of the user under the form of `keccak256(abi.encode(msg.sender, number, blindingFactor))`, where the blinding factor is a bytes32.
+    function guess(bytes32 commitment) public payable {
         Player storage player = players[msg.sender];
+
         require(!player.hasGuessed, "Player has already guessed");
         require(msg.value == 1 ether, "Player must send exactly 1 ETH");
         require(
@@ -472,84 +470,83 @@ contract GuessTheAverage {
 
         // Store the commitment.
         player.hasGuessed = true;
-        player.commitment = _commitment;
+        player.commitment = commitment;
     }
 
     /// @dev Reveals the guess for the user.
-    /// @param _number The number guessed.
-    /// @param _blindingFactor Bytes that has been used for the commitment to blind the guess.
-    function reveal(uint256 _number, bytes32 _blindingFactor) public {
+    /// @param number The number guessed.
+    /// @param blindingFactor Bytes that have been used for the commitment to blind the guess.
+    function reveal(uint256 number, bytes32 blindingFactor) public {
+        Player storage player = players[msg.sender];
+
         require(
             block.timestamp >= start + commitDuration && block.timestamp < start + commitDuration + revealDuration,
             "Reveal period must have begun and not ended"
         );
-        Player storage player = players[msg.sender];
-        require(!player.hasReveal, "Player has already revealed");
+        require(!player.hasRevealed, "Player has already revealed");
         require(player.hasGuessed, "Player must have guessed");
-        // Check the hash to prove the player's honesty
-        require(keccak256(abi.encode(msg.sender, _number, _blindingFactor)) == player.commitment, "Invalid hash");
+        // Check the hash to prove the player's honesty.
+        require(keccak256(abi.encode(msg.sender, number, blindingFactor)) == player.commitment, "Invalid hash");
 
         // Update player and guesses.
-        player.hasReveal = true;
-        average += _number;
+        player.hasRevealed = true;
+        average += number;
         indexToPlayer[guesses.length] = msg.sender;
-        guesses.push(_number);
+        guesses.push(number);
         player.playerIndex = guesses.length;
     }
 
     /// @dev Finds winners among players who have revealed their guess.
-    /// @param _count The number of transactions to execute. Executes until the end if set to "0" or number higher than number of transactions in the list.
-    function findWinners(uint256 _count) public {
+    /// @param count The number of transactions to execute; executes until the end if set to "0" or a number higher than the number of transactions in the list.
+    function findWinners(uint256 count) public {
         require(block.timestamp >= start + commitDuration + revealDuration, "Reveal period must have ended");
-        require(currentStage < Stage.WinnersFound);
-        // If we don't have calculated the average yet, we calculate it.
+        require(currentStage < Stage.WinnersFound, "Winners must not have been found yet");
+
+        // If we haven't calculated the average yet, we calculate it.
         if (currentStage < Stage.AverageCalculated) {
             average /= guesses.length;
-            currentStage = Stage.AverageCalculated;
             totalBalance = address(this).balance;
-            cursorWinner += 1;
+            lastDifference = type(uint256).max;
+            currentStage = Stage.AverageCalculated;
         }
-        // If there is no winner we push the first player into the winners list to initialize it.
-        if (winners.length == 0) {
-            winners.push(indexToPlayer[0]);
+
+        while (cursorWinner < guesses.length && count > 0) {
             // Avoid overflow.
-            if (guesses[0] > average) lastDifference = guesses[0] - average;
-            else lastDifference = average - guesses[0];
-        }
-        uint256 i = cursorWinner;
-        for (; i < guesses.length && (_count == 0 || i < cursorWinner + _count); i++) {
-            uint256 difference;
-            // Avoid overflow.
-            if (guesses[i] > average) difference = guesses[i] - average;
-            else difference = average - guesses[i];
-            // Compare difference with the latest lowest difference.
+            uint256 difference =
+                guesses[cursorWinner] > average ? guesses[cursorWinner] - average : average - guesses[cursorWinner];
+
+            // Compare the difference with the latest lowest difference.
             if (difference < lastDifference) {
-                // Add winner and update lastDifference.
-                cursorDistribute = numberOfLosers = winners.length;
-                winners.push(indexToPlayer[i]);
+                numberOfLosers = winners.length;
+                winners.push(indexToPlayer[cursorWinner]);
                 lastDifference = difference;
             } else if (difference == lastDifference) {
-                winners.push(indexToPlayer[i]);
+                winners.push(indexToPlayer[cursorWinner]);
             }
-            // If we have passed through the entire array, update currentStage.
+
+            cursorWinner++;
+            count--;
         }
-        if (i == guesses.length) currentStage = Stage.WinnersFound;
-        // Update the cursor in case we haven't finished going through the list.
-        cursorWinner += _count;
+
+        // If we have passed through the entire array, update currentStage.
+        if (cursorWinner == guesses.length) {
+            currentStage = Stage.WinnersFound;
+            cursorDistribute = numberOfLosers;
+        }
     }
 
     /// @dev Distributes rewards to winners.
-    /// @param _count The number of transactions to execute. Executes until the end if set to "0" or number higher than number of winners in the list.
-    function distribute(uint256 _count) public {
+    /// @param count The number of transactions to execute; executes until the end if set to "0" or a number higher than the number of winners in the list.
+    function distribute(uint256 count) public {
         require(currentStage == Stage.WinnersFound, "Winners must have been found");
 
-        while (cursorDistribute < winners.length && _count != 0) {
-            // Send ether to the winners. Do not block if one of the account cannot receive ETH.
+        while (cursorDistribute < winners.length && count > 0) {
+            // Send ether to the winners. Do not block if one of the accounts cannot receive ETH.
             winners[cursorDistribute++].call{value: totalBalance / (winners.length - numberOfLosers)}("");
-            _count--;
+            count--;
         }
 
-        if (cursorDistribute == winners.length - 1) currentStage = Stage.Distributed;
+        if (cursorDistribute == winners.length) currentStage = Stage.Distributed;
     }
 }
 
@@ -577,7 +574,7 @@ contract PiggyBank {
     function withdraw() public {
         require(msg.sender == owner, "Only the owner can withdraw");
         require(address(this).balance == 10 ether, "Cannot withdraw before reaching 10 ETH");
-        
+
         (bool success,) = msg.sender.call{value: address(this).balance}("");
         require(success, "Transfer failed");
     }
