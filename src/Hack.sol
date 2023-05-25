@@ -41,20 +41,20 @@ contract Store {
 
 /// @dev Enables users to buy objects at discounted prices.
 contract DiscountedBuy {
-    uint256 public constant basePrice = 1 ether;
+    uint256 public constant BASE_PRICE = 1 ether;
     mapping(address => uint256) public objectBought;
 
     /// @dev Allows a user to buy an object by paying the appropriate price.
-    /// @notice The price is calculated as `basePrice / (1 + objectBought[msg.sender])`.
+    /// @notice The price is calculated as `BASE_PRICE / (1 + objectBought[msg.sender])`.
     function buy() public payable {
-        require(msg.value * (1 + objectBought[msg.sender]) == basePrice, "Incorrect payment amount");
+        require(msg.value * (1 + objectBought[msg.sender]) == BASE_PRICE, "Incorrect payment amount");
         objectBought[msg.sender]++;
     }
 
     /// @dev Calculates and returns the price of the next object to be purchased.
     /// @return The amount to be paid in wei.
     function price() public view returns (uint256) {
-        return basePrice / (1 + objectBought[msg.sender]);
+        return BASE_PRICE / (1 + objectBought[msg.sender]);
     }
 }
 
@@ -115,7 +115,7 @@ contract Vault {
 
 /// @dev Contract for locking and unlocking funds using a commitment and password.
 contract Locker {
-    bytes32 _commitment;
+    bytes32 internal _commitment;
 
     /// @dev Locks the funds sent along with this transaction by setting the commitment.
     /// @param commitment The commitment to lock the funds.
