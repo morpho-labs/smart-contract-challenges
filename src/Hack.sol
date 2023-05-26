@@ -291,11 +291,11 @@ contract Resolver {
     address[2] public sides;
     uint256[2] public partyDeposits;
 
-    /// @param _baseDeposit The deposit a party has to pay. Note that it is greater than the reward.
-    constructor(uint256 _baseDeposit) payable {
-        require(_baseDeposit >= msg.value, "Base deposit must be greater than the reward");
+    /// @param newBaseDeposit The deposit a party has to pay. Note that it is greater than the reward.
+    constructor(uint256 newBaseDeposit) payable {
+        require(newBaseDeposit >= msg.value, "Base deposit must be greater than the reward");
         reward = msg.value;
-        baseDeposit = _baseDeposit;
+        baseDeposit = newBaseDeposit;
     }
 
     /// @dev Makes a deposit to one of the sides.
@@ -448,12 +448,12 @@ contract GuessTheAverage {
 
     mapping(address => bytes32) public commitments; // Mapping of players to their commitments.
 
-    /// @param _commitDuration The duration of the commit period.
-    /// @param _revealDuration The duration of the reveal period.
-    constructor(uint256 _commitDuration, uint256 _revealDuration) {
+    /// @param newCommitDuration The duration of the commit period.
+    /// @param newRevealDuration The duration of the reveal period.
+    constructor(uint256 newCommitDuration, uint256 newRevealDuration) {
         start = block.timestamp;
-        commitDuration = _commitDuration;
-        revealDuration = _revealDuration;
+        commitDuration = newCommitDuration;
+        revealDuration = newRevealDuration;
     }
 
     /// @dev Adds the guess for the user.
@@ -749,25 +749,25 @@ contract RewardsDistributor {
 ///      The price of a ticket is the equivalent of `_ticketPriceInEth` Ether in token.
 ///      The objective for users is to purchase tickets, which can be used as an entry pass for an event or to gain access to a service.
 contract Ticketing {
-    address public immutable _owner;
-    uint256 public immutable _ticketPriceInEth;
-    uint256 public immutable _virtualReserveEth;
-    uint256 public immutable _k;
+    address public immutable owner;
+    uint256 public immutable ticketPriceInEth;
+    uint256 public immutable virtualReserveEth;
+    uint256 public immutable k;
 
     mapping(address => uint256) public balances;
     mapping(address => uint256) public tickets;
 
     /// @dev We assume that the values of the different parameters are big enough to minimize the impact of rounding errors.
-    /// @param ticketPriceInEth The price of a ticket in Ether.
-    /// @param virtualReserveEth The virtual reserve of Ether in the contract.
+    /// @param newTicketPriceInEth The price of a ticket in Ether.
+    /// @param newVirtualReserveEth The virtual reserve of Ether in the contract.
     /// @param totalSupply The total supply of tokens.
-    constructor(uint256 ticketPriceInEth, uint256 virtualReserveEth, uint256 totalSupply) {
-        require(virtualReserveEth > ticketPriceInEth, "Virtual reserve must be greater than ticket price");
+    constructor(uint256 newTicketPriceInEth, uint256 newVirtualReserveEth, uint256 totalSupply) {
+        require(newVirtualReserveEth > newTicketPriceInEth, "Virtual reserve must be greater than ticket price");
 
-        _owner = msg.sender;
-        _ticketPriceInEth = ticketPriceInEth;
-        _virtualReserveEth = virtualReserveEth;
-        _k = virtualReserveEth * totalSupply;
+        owner = msg.sender;
+        ticketPriceInEth = newTicketPriceInEth;
+        virtualReserveEth = newVirtualReserveEth;
+        k = newVirtualReserveEth * totalSupply;
         balances[address(this)] = totalSupply;
     }
 
@@ -776,7 +776,7 @@ contract Ticketing {
     /// @param amountOutMin The minimum amount of tokens expected to receive.
     /// @return amountOut The amount of tokens received.
     function buyToken(uint256 amountOutMin) external payable returns (uint256 amountOut) {
-        amountOut = reserveToken() - _k / (reserveEth() + msg.value);
+        amountOut = _reserveToken() - k / (_reserveEth() + msg.value);
         require(amountOut >= amountOutMin, "Insufficient tokens received");
         balances[address(this)] -= amountOut;
         balances[msg.sender] += amountOut;
@@ -788,7 +788,7 @@ contract Ticketing {
     /// @param amountOutMin The minimum amount of Ether expected to receive.
     /// @return amountOut The amount of Ether received.
     function sellToken(uint256 amountIn, uint256 amountOutMin) external returns (uint256 amountOut) {
-        amountOut = reserveEth() - _k / (reserveToken() + amountIn);
+        amountOut = _reserveEth() - k / (_reserveToken() + amountIn);
         require(amountOut >= amountOutMin, "Insufficient Ether received");
         balances[msg.sender] -= amountIn;
         balances[address(this)] += amountIn;
@@ -800,13 +800,13 @@ contract Ticketing {
     /// @notice Get the effective Ether balance available for token swaps.
     /// @dev This function calculates the effective Ether balance by subtracting the value sent in the current transaction and adding the virtual reserve.
     /// @return The effective Ether balance available for token swaps.
-    function reserveEth() internal view returns (uint256) {
-        return address(this).balance - msg.value + _virtualReserveEth;
+    function _reserveEth() internal view returns (uint256) {
+        return address(this).balance - msg.value + virtualReserveEth;
     }
 
     /// @notice Get the effective token balance available for token swaps.
     /// @return The effective token balance available for token swaps.
-    function reserveToken() internal view returns (uint256) {
+    function _reserveToken() internal view returns (uint256) {
         return balances[address(this)];
     }
 
@@ -815,7 +815,7 @@ contract Ticketing {
     ///      Like in the function `sellToken`, the following formula is used: (x - dx) * (y + dy) = k.
     /// @return The current ticket price in Ether.
     function ticketPrice() public view returns (uint256) {
-        return _k / (reserveEth() - _ticketPriceInEth) - reserveToken();
+        return k / (_reserveEth() - ticketPriceInEth) - _reserveToken();
     }
 
     /// @notice Buy a ticket.
@@ -824,7 +824,7 @@ contract Ticketing {
         uint256 price = ticketPrice();
         require(price <= maxPrice, "Ticket price exceeds the maximum limit");
         balances[msg.sender] -= price;
-        balances[_owner] += price;
+        balances[owner] += price;
         tickets[msg.sender]++;
     }
 }
@@ -841,7 +841,7 @@ contract BattleRoyale {
     uint256 public constant TOTAL_REWARD = 10 ether;
     uint256 public immutable endTime;
 
-    address public kingAddress;
+    address public king;
     address public kingChallenger;
     uint256 public dethronedTime;
 
@@ -850,7 +850,7 @@ contract BattleRoyale {
 
         endTime = block.timestamp + DURATION;
 
-        kingAddress = msg.sender;
+        king = msg.sender;
         kingChallenger = address(type(uint160).max);
         dethronedTime = block.timestamp;
     }
@@ -868,10 +868,10 @@ contract BattleRoyale {
         (bool success, bytes memory data) = challenger.staticcall("");
         require(success && data.length > 0, "Invalid challenger");
 
-        address previousKing = kingAddress;
+        address previousKing = king;
         uint256 previousKingReward = TOTAL_REWARD * (block.timestamp - dethronedTime) / DURATION;
 
-        kingAddress = msg.sender;
+        king = msg.sender;
         kingChallenger = challenger;
         dethronedTime = block.timestamp;
 
@@ -887,7 +887,7 @@ contract BattleRoyale {
 
         dethronedTime = endTime;
 
-        (bool success,) = kingAddress.call{value: kingReward}("");
+        (bool success,) = king.call{value: kingReward}("");
         require(success, "Transfer failed");
     }
 }
