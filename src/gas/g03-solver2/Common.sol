@@ -2,7 +2,7 @@
 pragma solidity 0.8.20;
 
 contract GuessTheNumber2 {
-    uint256 private immutable number;
+    uint256 private immutable _number;
     bool public guessed;
 
     enum Result {
@@ -11,15 +11,15 @@ contract GuessTheNumber2 {
         EQUAL
     }
 
-    constructor(uint256 _number) {
-        number = _number;
+    constructor(uint256 number) {
+        _number = number;
     }
 
-    function guess(uint256 _guess) external returns (Result) {
+    function guess(uint256 guessedNumber) external returns (Result) {
         require(!guessed);
         guessed = true;
-        if (number < _guess) return Result.LESS;
-        else if (number > _guess) return Result.GREATER;
+        if (_number < guessedNumber) return Result.LESS;
+        else if (_number > guessedNumber) return Result.GREATER;
         else return Result.EQUAL;
     }
 }

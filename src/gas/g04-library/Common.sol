@@ -22,10 +22,10 @@ contract Shelf {
 }
 
 contract Book {
-    bytes32 public immutable _content;
+    bytes32 public immutable content;
 
-    constructor(bytes32 content) {
-        _content = content;
+    constructor(bytes32 newContent) {
+        content = newContent;
     }
 }
 

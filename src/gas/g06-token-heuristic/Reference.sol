@@ -4,15 +4,15 @@ pragma solidity 0.8.20;
 import {TokenIndicators, GlobalCoefficientsProvider, ITokenHeuristic} from "./Common.sol";
 
 contract TokenHeuristic is ITokenHeuristic {
-    uint256 _pcPrice;
-    uint256 _pcVolume;
-    uint256 _pcVolatility;
-    uint256 _pcMarketCap;
-    uint256 _pcHolders;
-    uint256 _pcTotalTransfers;
-    uint256 _pcAge;
+    uint256 internal _pcPrice;
+    uint256 internal _pcVolume;
+    uint256 internal _pcVolatility;
+    uint256 internal _pcMarketCap;
+    uint256 internal _pcHolders;
+    uint256 internal _pcTotalTransfers;
+    uint256 internal _pcAge;
 
-    GlobalCoefficientsProvider _globalCoefficientsProvider;
+    GlobalCoefficientsProvider internal _globalCoefficientsProvider;
 
     function setPersonalCoefficients(
         uint256 pcPrice,

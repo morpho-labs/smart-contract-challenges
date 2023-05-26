@@ -26,8 +26,8 @@ contract Solver is ISolver {
         return min;
     }
 
-    function cheat(GuessTheNumber game, uint256 _guess) external {
-        GuessTheNumber.Result result = game.guess(_guess);
+    function cheat(GuessTheNumber game, uint256 guess) external {
+        GuessTheNumber.Result result = game.guess(guess);
         revert(string(abi.encode(result)));
     }
 }

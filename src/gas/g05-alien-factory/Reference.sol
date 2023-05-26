@@ -4,16 +4,16 @@ pragma solidity 0.8.20;
 import {IAlienFactory} from "./Common.sol";
 
 contract AlienFactory is IAlienFactory {
-    address _parent;
-    uint256 _eyesNumber;
-    uint256 _legsNumber;
-    uint256 _armsNumber;
-    uint256 _antennaNumber;
-    bool _hasNose;
-    uint256 _height;
-    Color _color;
-    uint256 _age;
-    Planet _planet;
+    address internal _parent;
+    uint256 internal _eyesNumber;
+    uint256 internal _legsNumber;
+    uint256 internal _armsNumber;
+    uint256 internal _antennaNumber;
+    bool internal _hasNose;
+    uint256 internal _height;
+    Color internal _color;
+    uint256 internal _age;
+    Planet internal _planet;
 
     function setAlienAttributes(
         address parent,

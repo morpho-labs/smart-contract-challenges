@@ -11,21 +11,21 @@ contract TokenIndicators {
     uint256 public age;
 
     constructor(
-        uint256 _price,
-        uint256 _volume,
-        uint256 _volatility,
-        uint256 _marketCap,
-        uint256 _holders,
-        uint256 _totalTransfers,
-        uint256 _age
+        uint256 newPrice,
+        uint256 newVolume,
+        uint256 newVolatility,
+        uint256 newMarketCap,
+        uint256 newHolders,
+        uint256 newTotalTransfers,
+        uint256 newAge
     ) {
-        price = _price;
-        volume = _volume;
-        volatility = _volatility;
-        marketCap = _marketCap;
-        holders = _holders;
-        totalTransfers = _totalTransfers;
-        age = _age;
+        price = newPrice;
+        volume = newVolume;
+        volatility = newVolatility;
+        marketCap = newMarketCap;
+        holders = newHolders;
+        totalTransfers = newTotalTransfers;
+        age = newAge;
     }
 }
 
@@ -39,21 +39,21 @@ contract GlobalCoefficientsProvider {
     uint256 public gcAge;
 
     constructor(
-        uint256 _gcPrice,
-        uint256 _gcVolume,
-        uint256 _gcVolatility,
-        uint256 _gcMarketCap,
-        uint256 _gcHolders,
-        uint256 _gcTotalTransfers,
-        uint256 _gcAge
+        uint256 newGcPrice,
+        uint256 newGcVolume,
+        uint256 newGcVolatility,
+        uint256 newGcMarketCap,
+        uint256 newGcHolders,
+        uint256 newGcTotalTransfers,
+        uint256 newGcAge
     ) {
-        gcPrice = _gcPrice;
-        gcVolume = _gcVolume;
-        gcVolatility = _gcVolatility;
-        gcMarketCap = _gcMarketCap;
-        gcHolders = _gcHolders;
-        gcTotalTransfers = _gcTotalTransfers;
-        gcAge = _gcAge;
+        gcPrice = newGcPrice;
+        gcVolume = newGcVolume;
+        gcVolatility = newGcVolatility;
+        gcMarketCap = newGcMarketCap;
+        gcHolders = newGcHolders;
+        gcTotalTransfers = newGcTotalTransfers;
+        gcAge = newGcAge;
     }
 }
 
@@ -67,6 +67,8 @@ interface ITokenHeuristic {
         uint256 pcTotalTransfers,
         uint256 pcAge
     ) external;
+
     function setGlobalCoefficientsProvider(GlobalCoefficientsProvider) external;
+
     function score(TokenIndicators, TokenIndicators) external view returns (uint256);
 }
