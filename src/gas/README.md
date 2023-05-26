@@ -34,5 +34,4 @@ forge test --match-contract TestExample
 
 This command will execute only the specified exercise, allowing you to focus on one challenge at a time.
 
-
 **Review the test results:** After running the tests, you will see logs showing the reference gas usage, target gas usage, the record, and the current gas usage of your optimized contract. The goal is to minimize the gas usage of your optimized contract to reach or surpass the target gas usage.
