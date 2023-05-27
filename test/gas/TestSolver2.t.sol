@@ -9,7 +9,7 @@ import {GuessTheNumber2, ISolver2} from "src/gas/g03-solver2/Common.sol";
 import {Solver2 as Reference} from "src/gas/g03-solver2/Reference.sol";
 import {Solver2 as Optimized} from "src/gas/g03-solver2/Optimized.sol";
 
-contract TestSolver is Test, Utils {
+contract TestSolver2 is Test, Utils {
     ISolver2 ref;
     ISolver2 opti;
 
