@@ -9,7 +9,7 @@ import {ISearchEngine, Library} from "src/gas/g04-library/Common.sol";
 import {SearchEngine as Reference} from "src/gas/g04-library/Reference.sol";
 import {SearchEngine as Optimized} from "src/gas/g04-library/Optimized.sol";
 
-contract TestLoop is Test, Utils {
+contract TestLibrary is Test, Utils {
     ISearchEngine ref;
     ISearchEngine opti;
 
