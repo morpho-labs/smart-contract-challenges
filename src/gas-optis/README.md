@@ -1,16 +1,18 @@
-# Objective
+# Gas Optimizations
+
+## Objective
 
 This repository is designed to test your gas optimization skills as a Solidity developer. The challenges presented here are intended to evaluate your understanding of contract bottlenecks and your ability to optimize them effectively. Each exercise focuses on a specific optimization technique, allowing you to demonstrate your knowledge and expertise.
 
 The objective of these challenges is not to encourage participants to try random strategies or rewrite the entire contract in assembly. Instead, we aim to assess your understanding of contract bottlenecks and your ability to identify and implement optimizations without resorting to low-level techniques. While some exercises may require advanced knowledge, most of the gas targets can be achieved using Solidity's high-level constructs.
 
-# How to Use
+## How to Use
 
-## Prerequisites
+### Prerequisites
 
 Have [Foundry](https://book.getfoundry.sh/getting-started/installation) installed.
 
-## Instructions
+### Instructions
 
 **Explore the challenges:** Inside the repository, you will find several challenge folders, each containing three files:
 
