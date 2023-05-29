@@ -5,9 +5,9 @@ import {Test} from "forge-std/Test.sol";
 
 import {Utils} from "./Utils.sol";
 
-import {ILoops} from "src/gas/g01-loops/Common.sol";
-import {Loops as Reference} from "src/gas/g01-loops/Reference.sol";
-import {Loops as Optimized} from "src/gas/g01-loops/Optimized.sol";
+import {ILoops} from "src/gas-optis/g01-loops/Common.sol";
+import {Loops as Reference} from "src/gas-optis/g01-loops/Reference.sol";
+import {Loops as Optimized} from "src/gas-optis/g01-loops/Optimized.sol";
 
 contract TestLoop is Test, Utils {
     ILoops ref;

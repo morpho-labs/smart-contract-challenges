@@ -5,9 +5,9 @@ import {Test} from "forge-std/Test.sol";
 
 import {Utils} from "./Utils.sol";
 
-import {ISearchEngine, Library} from "src/gas/g04-library/Common.sol";
-import {SearchEngine as Reference} from "src/gas/g04-library/Reference.sol";
-import {SearchEngine as Optimized} from "src/gas/g04-library/Optimized.sol";
+import {ISearchEngine, Library} from "src/gas-optis/g04-library/Common.sol";
+import {SearchEngine as Reference} from "src/gas-optis/g04-library/Reference.sol";
+import {SearchEngine as Optimized} from "src/gas-optis/g04-library/Optimized.sol";
 
 contract TestLibrary is Test, Utils {
     ISearchEngine ref;
