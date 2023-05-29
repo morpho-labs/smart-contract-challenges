@@ -3,7 +3,7 @@ pragma solidity ^0.8.0;
 
 /// @dev This contract enables users to buy and sell tokens using the x * y = k formula,
 ///      where tokens are used to purchase tickets.
-///      The price of a ticket is the equivalent of `_ticketPriceInEth` Ether in token.
+///      The price of a ticket is the equivalent of `ticketPriceInEth` Ether in token.
 ///      The objective for users is to purchase tickets, which can be used as an entry pass for an event or to gain access to a service.
 contract Ticketing {
     address public immutable owner;
@@ -68,7 +68,7 @@ contract Ticketing {
     }
 
     /// @notice Get the current ticket price.
-    /// @dev The price of a ticket is determined by how much tokens must be sold to obtain `_ticketPriceInEth` Ether.
+    /// @dev The price of a ticket is determined by how much tokens must be sold to obtain `ticketPriceInEth` Ether.
     ///      Like in the function `sellToken`, the following formula is used: (x - dx) * (y + dy) = k.
     /// @return The current ticket price in Ether.
     function ticketPrice() public view returns (uint256) {

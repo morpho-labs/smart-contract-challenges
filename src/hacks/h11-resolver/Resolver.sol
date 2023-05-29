@@ -35,8 +35,8 @@ contract Resolver {
         partyDeposits[uint256(side)] = msg.value;
     }
 
-    /// @dev Pays the reward to the winner. Reimburses the surplus deposit for both parties if there was one.
-    /// @param winner The side that is eligible to a reward according to owner.
+    /// @dev Pays the reward to the winner and refunds the surplus deposit for both parties if there was one.
+    /// @param winner The side that is eligible for a reward according to the owner.
     function declareWinner(Side winner) external {
         require(!declared, "The winner is already declared");
         require(msg.sender == owner, "Only owner allowed");
@@ -47,7 +47,7 @@ contract Resolver {
         (bool success,) = sides[uint256(winner)].call{value: reward}("");
         require(success, "Transfer failed");
 
-        // Reimburse the surplus deposit if there was one.
+        // Refunds the surplus deposit if there was one.
         if (partyDeposits[0] > baseDeposit && sides[0] != address(0)) {
             (success,) = sides[0].call{value: partyDeposits[0] - baseDeposit}("");
             require(success, "Transfer failed");
