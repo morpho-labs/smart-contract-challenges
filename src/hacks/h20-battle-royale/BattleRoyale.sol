@@ -26,13 +26,13 @@ contract BattleRoyale {
     }
 
     /// @dev Allows a participant to challenge the current king by giving their own challenger contract.
-    ///      We expect participants to handle frontrunning risks themselves.
+    ///      Participants are expected to handle frontrunning risks themselves.
     /// @param challenger The address of the challenger's contract.
     function dethrone(address challenger) external {
         require(block.timestamp < endTime, "The game has ended");
         require(
             uint160(challenger) < uint160(kingChallenger),
-            "Challenger's address must be lower than the current king's challenger address"
+            "The challenger's address must be lower than the current king's challenger address"
         );
 
         (bool success, bytes memory data) = challenger.staticcall("");

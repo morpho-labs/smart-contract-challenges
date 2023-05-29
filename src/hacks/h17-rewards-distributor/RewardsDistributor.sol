@@ -9,7 +9,7 @@ contract RewardsDistributor {
 
     mapping(bytes32 node => bool) public claimed;
 
-    /// @notice Assumes that the deployer has provided a valid root hash, and sent the correct amount of ETH with the deployment.
+    /// @notice Assumes that the deployer has provided a valid root hash and sent the correct amount of ETH with the deployment.
     /// @param root The root hash of the Merkle tree used for reward distribution.
     constructor(bytes32 root) payable {
         ADMIN = msg.sender;
@@ -17,10 +17,10 @@ contract RewardsDistributor {
     }
 
     /// @dev Verifies a Merkle proof proving the existence of a leaf in a Merkle tree. Assumes that each pair of leaves
-    ///      and each pair of pre-images are sorted.
-    /// @param proof Merkle proof containing sibling hashes on the branch from the leaf to the root of the Merkle tree
-    /// @param root Merkle root
-    /// @param leaf Leaf of Merkle tree
+    ///      and each pair of pre-images is sorted.
+    /// @param proof Merkle proof containing sibling hashes on the branch from the leaf to the root of the Merkle tree.
+    /// @param root Merkle root.
+    /// @param leaf Leaf of Merkle tree.
     /// @return A boolean indicating whether the proof is valid or not.
     function _verify(bytes32[] calldata proof, bytes32 root, bytes32 leaf) internal pure returns (bool) {
         bytes32 computedHash = leaf;
@@ -37,7 +37,7 @@ contract RewardsDistributor {
             }
         }
 
-        // Check if the computed hash (root) is equal to the provided root
+        // Check if the computed hash (root) is equal to the provided root.
         return computedHash == root;
     }
 
@@ -62,7 +62,7 @@ contract RewardsDistributor {
 
         claimed[node] = true;
 
-        // Transfer the reward amount to the claimant or admin if the deadline has passed
+        // Transfer the reward amount to the claimant or admin if the deadline has passed.
         (bool success,) = (block.timestamp < deadline ? onBehalf : ADMIN).call{value: REWARD_AMOUNT}("");
         require(success, "Transfer failed");
     }

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-/// @dev Contract managing the storage and the redemption of ETH.
+/// @dev Contract managing the storage and redemption of ETH.
 contract Vault {
     mapping(address => uint256) public balances;
 

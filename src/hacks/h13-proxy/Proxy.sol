@@ -52,7 +52,6 @@ contract Proxy {
     }
 
     /// @dev Fallback function that delegates calls to the address returned by `_implementation()`. Will run if no other function in the contract matches the call data.
-
     fallback() external payable virtual {
         _fallback();
     }

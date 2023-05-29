@@ -3,7 +3,7 @@ pragma solidity ^0.8.0;
 
 /// @dev Contract of a fund that follows inflation through an index.
 contract InflationFund {
-    uint256 totalSupply;
+    uint256 public totalSupply;
     mapping(address => uint256) public scaledBalances;
     uint256 public inflationIndex = 1e16;
 
@@ -22,7 +22,7 @@ contract InflationFund {
         totalSupply += toAdd;
     }
 
-    /// @dev Withdraws some ethers of the inflation fund.
+    /// @dev Withdraws some ethers from the inflation fund.
     /// @param amount The amount that the user wants to withdraw.
     function withdraw(uint256 amount) external {
         uint256 toRemove = amount / inflationIndex;

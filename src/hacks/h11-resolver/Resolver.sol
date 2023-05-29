@@ -2,7 +2,7 @@
 pragma solidity ^0.8.0;
 
 /// @dev Two parties deposit on a particular side and the owner decides which side is correct.
-///      Owner's decision is based on some external factors irrelevant to this contract.
+///      The owner's decision is based on some external factors irrelevant to this contract.
 contract Resolver {
     enum Side {
         A,
@@ -39,7 +39,7 @@ contract Resolver {
     /// @param winner The side that is eligible for a reward according to the owner.
     function declareWinner(Side winner) external {
         require(!declared, "The winner is already declared");
-        require(msg.sender == owner, "Only owner allowed");
+        require(msg.sender == owner, "Only the owner is allowed");
 
         declared = true;
 
