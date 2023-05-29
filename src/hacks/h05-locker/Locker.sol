@@ -8,6 +8,7 @@ contract Locker {
     /// @dev Locks the funds sent along with this transaction by setting the commitment.
     /// @param commitment The commitment to lock the funds.
     function lock(bytes32 commitment) external payable {
+        require(_commitment == bytes32(0), "Already locked");
         require(commitment != bytes32(0), "Invalid commitment");
         _commitment = commitment;
     }
