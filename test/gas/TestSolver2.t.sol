@@ -5,9 +5,9 @@ import {Test} from "forge-std/Test.sol";
 
 import {Utils} from "./Utils.sol";
 
-import {GuessTheNumber2, ISolver2} from "src/gas/g03-solver2/Common.sol";
-import {Solver2 as Reference} from "src/gas/g03-solver2/Reference.sol";
-import {Solver2 as Optimized} from "src/gas/g03-solver2/Optimized.sol";
+import {GuessTheNumber2, ISolver2} from "src/gas/g06-solver2/Common.sol";
+import {Solver2 as Reference} from "src/gas/g06-solver2/Reference.sol";
+import {Solver2 as Optimized} from "src/gas/g06-solver2/Optimized.sol";
 
 contract TestSolver2 is Test, Utils {
     ISolver2 ref;
