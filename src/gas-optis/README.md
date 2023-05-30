@@ -18,7 +18,7 @@ Have [Foundry](https://book.getfoundry.sh/getting-started/installation) installe
 
 **Run the tests:** To run the tests and verify the correctness and gas consumption of your optimized contract, use the following command:
 
-```bash
+```shell
 forge test
 ```
 
@@ -26,7 +26,7 @@ This command will execute all the tests in the repository.
 
 **Focus on specific tests (optional):** If you want to focus on a specific exercise, you can use the `--match-contract` flag followed by the exercise name. For example, to run the tests of an exercise named `Example`, use the following command:
 
-```bash
+```shell
 forge test --match-contract TestExample
 ```
 
