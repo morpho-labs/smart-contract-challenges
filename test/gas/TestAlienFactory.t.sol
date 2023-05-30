@@ -5,9 +5,9 @@ import {Test} from "forge-std/Test.sol";
 
 import {Utils} from "./Utils.sol";
 
-import {IAlienFactory} from "src/gas/g02-alien-factory/Common.sol";
-import {AlienFactory as Reference} from "src/gas/g02-alien-factory/Reference.sol";
-import {AlienFactory as Optimized} from "src/gas/g02-alien-factory/Optimized.sol";
+import {IAlienFactory} from "src/gas-optis/g02-alien-factory/Common.sol";
+import {AlienFactory as Reference} from "src/gas-optis/g02-alien-factory/Reference.sol";
+import {AlienFactory as Optimized} from "src/gas-optis/g02-alien-factory/Optimized.sol";
 
 contract TestAlienFactory is Test, Utils {
     IAlienFactory ref;

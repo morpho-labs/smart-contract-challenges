@@ -5,9 +5,9 @@ import {Test} from "forge-std/Test.sol";
 
 import {Utils} from "./Utils.sol";
 
-import {TokenIndicators, GlobalCoefficientsProvider, ITokenHeuristic} from "src/gas/g03-token-heuristic/Common.sol";
-import {TokenHeuristic as Reference} from "src/gas/g03-token-heuristic/Reference.sol";
-import {TokenHeuristic as Optimized} from "src/gas/g03-token-heuristic/Optimized.sol";
+import {TokenIndicators, GlobalCoefficientsProvider, ITokenHeuristic} from "src/gas-optis/g03-token-heuristic/Common.sol";
+import {TokenHeuristic as Reference} from "src/gas-optis/g03-token-heuristic/Reference.sol";
+import {TokenHeuristic as Optimized} from "src/gas-optis/g03-token-heuristic/Optimized.sol";
 
 contract TestTokenHeuristic is Test, Utils {
     struct Coefficients {
