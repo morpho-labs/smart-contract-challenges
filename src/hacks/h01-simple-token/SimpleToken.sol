@@ -10,10 +10,10 @@ contract SimpleToken {
         balances[msg.sender] = 1000e18;
     }
 
-    /// @dev Sends token.
+    /// @dev Transfers tokens.
     /// @param recipient The recipient.
     /// @param amount The amount to send.
-    function sendToken(address recipient, int256 amount) external {
+    function transfer(address recipient, int256 amount) external {
         balances[msg.sender] -= amount;
         balances[recipient] += amount;
     }

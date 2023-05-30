@@ -22,7 +22,7 @@ contract Registry {
     /// @param surname The last name of the user.
     /// @param nonce An arbitrary number to allow multiple users with the same first and last name.
     function register(string calldata name, string calldata surname, uint256 nonce) external {
-        require(!isRegistered[name][surname][nonce], "This profile is already registered.");
+        require(!isRegistered[name][surname][nonce], "This profile is already registered");
         isRegistered[name][surname][nonce] = true;
         bytes32 id = keccak256(abi.encodePacked(name, surname, nonce));
 

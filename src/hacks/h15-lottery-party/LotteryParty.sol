@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-/// @dev This is a game where an Owner considered as TRUSTED can set many lotteries with rewards.
-///      The Owner chooses the winning number randomly off-chain. It should be within the range [0, ticketNumber].
+/// @dev This is a game where an owner considered as trusted can set many lotteries with rewards.
+///      The owner chooses the winning number randomly off-chain. It should be within the range [0, ticketNumber].
 ///      Frontrunning the reveal of the winning number is impossible as the owner will see only the ticket number of the previous block.
-///      The users can propose new lotteries but it's up to the Owner to fund them.
-///      The Owner can clear the lottery to create fresh new ones.
+///      The users can propose new lotteries but it's up to the owner to fund them.
+///      The owner can clear the lottery to create fresh new ones.
 contract LotteryParty {
     struct Lottery {
         uint256 ticketNumber;
@@ -78,7 +78,7 @@ contract LotteryParty {
         }
     }
 
-    /// @dev Delete the selected round.
+    /// @dev Deletes the selected round.
     /// @param lotteryIndex The index of the round concerned.
     function clearRound(uint256 lotteryIndex) external onlyOwner {
         if (lotteries[lotteryIndex].rewards == 0) {

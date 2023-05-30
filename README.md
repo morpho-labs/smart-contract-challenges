@@ -1,13 +1,13 @@
 # Smart Contract Challenges
 
-This repository is designed to help you enhance your skills in smart contract development and security. It consists of two main sections: *Gas Optimization Challenges* and *Hacking Challenges*.
+This repository is designed to help you enhance your skills in smart contract development and security. It consists of two main sections: *Hacking Challenges* and *Gas Optimization Challenges*.
 
 ## Challenges
 
 ### Hacking Challenges
 The [hacks](./src/hacks/) folder is dedicated to smart contract hacking challenges. These exercises provide an opportunity to enhance your skills in identifying vulnerabilities and exploiting them. Each challenge focuses on a specific hacking technique, enabling you to gain practical experience in smart contract security.
 
-For more details on the gas hacking challenges, please refer to the [README](./src/hacks/README.md) located in the [hacks](./src/hacks/) folder.
+For more details on the hacking challenges, please refer to the [README](./src/hacks/README.md) located in the [hacks](./src/hacks/) folder.
 
 ### Gas Optimization Challenges
 The [gas-optis](./src/gas-optis/) folder contains a series of gas optimization challenges. These exercises are designed to test your skills in optimizing gas usage in Solidity contracts. Each challenge focuses on a specific optimization technique, allowing you to demonstrate your knowledge and expertise.

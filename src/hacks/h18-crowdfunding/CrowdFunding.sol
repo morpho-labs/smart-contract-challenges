@@ -14,9 +14,9 @@ contract Crowdfunding {
 
     Project[] public projects;
 
-    /// @dev Create a new crowdfunding project.
+    /// @dev Creates a new crowdfunding project.
     ///      The project creator specifies the deadline and target amount for the project.
-    ///      Caller must be able to receive funds, otherwise, the funded amount will be lost.
+    ///      The caller must be able to receive funds, otherwise, the funded amount will be lost.
     /// @param deadline The deadline for the project.
     /// @param targetAmount The target amount of funds to be raised for the project.
     /// @return projectIndex The index of the newly created project in the projects array.
@@ -31,7 +31,7 @@ contract Crowdfunding {
         projects[projectIndex].targetAmount = targetAmount;
     }
 
-    /// @dev Contribute an amount of funds to the specified project.
+    /// @dev Contributes an amount of funds to the specified project.
     /// @param projectIndex The index of the project in the projects array.
     function contribute(uint256 projectIndex) external payable {
         Project storage project = projects[projectIndex];
@@ -42,9 +42,9 @@ contract Crowdfunding {
         project.totalAmountRaised += msg.value;
     }
 
-    /// @dev Withdraw funds from a successfully funded project.
+    /// @dev Withdraws funds from a successfully funded project.
     ///      The project creator can withdraw the funds raised if the target amount is reached before the deadline.
-    ///      Caller must be able to receive funds, otherwise, the contributed amount will be lost.
+    ///      The caller must be able to receive funds, otherwise, the contributed amount will be lost.
     /// @param projectIndex The index of the project in the projects array.
     function withdrawFunds(uint256 projectIndex) external {
         Project storage project = projects[projectIndex];
@@ -59,7 +59,7 @@ contract Crowdfunding {
         require(success, "Transfer failed");
     }
 
-    /// @dev Withdraw contributed funds if the project is not successfully funded.
+    /// @dev Withdraws contributed funds if the project is not successfully funded.
     ///      Contributors can withdraw their contributions if the target amount is not reached before the deadline.
     /// @param projectIndex The index of the project in the projects array.
     function withdrawContribution(uint256 projectIndex) external {
@@ -75,7 +75,7 @@ contract Crowdfunding {
         require(success, "Transfer failed");
     }
 
-    /// @dev Perform a series of transactions in a single call.
+    /// @dev Performs a series of transactions in a single call.
     /// @param transactions The array of transactions to be executed.
     /// @return results The results of each transaction in the same order as the input transactions.
     function batchTransactions(bytes[] calldata transactions) external payable returns (bytes[] memory results) {
