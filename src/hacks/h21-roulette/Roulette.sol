@@ -34,6 +34,7 @@ contract Roulette {
     function resolve() external {
         uint256 endSpinBlockNumber = spinBlockNumber[msg.sender] + 1;
 
+        require(endSpinBlockNumber > 1, "No spin recorded for the user");
         require(block.number > endSpinBlockNumber, "Spin not completed");
 
         spinBlockNumber[msg.sender] == 0;
