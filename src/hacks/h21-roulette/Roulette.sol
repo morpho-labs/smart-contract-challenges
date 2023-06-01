@@ -48,7 +48,7 @@ contract Roulette {
         }
     }
 
-    /// @dev Allow this contract to eceive Ether.
+    /// @dev Allow this contract to receive Ether.
     /// @notice This function is intended for the admin to fund the contract with Ether.
     receive() external payable {}
 
