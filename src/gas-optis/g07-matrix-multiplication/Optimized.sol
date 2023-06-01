@@ -25,7 +25,7 @@ contract MatrixMultiplication is IMatrixMultiplication {
 
     /// @dev Performs matrix multiplication of matrix A with matrix B and returns the resulting matrix.
     ///      The multiplication results are intentionally allowed to overflow.
-    ///      Assuming the dimensions of matrix A and matrix B are correct and compatible.
+    ///      Assumes that the dimensions of matrix A and matrix B are correct and compatible.
     /// @notice Must be optimized.
     /// @param matrixB The matrix B to be multiplied with matrix A.
     /// @return result The matrix resulting from the multiplication of matrix A with matrix B.
@@ -45,11 +45,11 @@ contract MatrixMultiplication is IMatrixMultiplication {
 
     /// @dev Calculates a single element of the resulting matrix by multiplying the corresponding row of matrix A with the column of matrix B.
     ///      The multiplication results are intentionally allowed to overflow.
-    ///      Assuming the dimensions of matrix A and matrix B are correct and compatible.
+    ///      Assumes that the dimensions of matrix A and matrix B are correct and compatible.
     /// @notice Must be optimized.
     /// @param matrixB The matrix B to be multiplied with matrix A.
-    /// @param i The row index in matrix A and resulting matrix.
-    /// @param j The column index in matrix B and resulting matrix.
+    /// @param i The row of the element to compute in the resulting matrix.
+    /// @param j The column of the element to compute in the resulting matrix.
     /// @return result The calculated element of the resulting matrix.
     function matrixMulElement(uint256[][] calldata matrixB, uint256 i, uint256 j)
         public
