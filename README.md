@@ -2,6 +2,13 @@
 
 This repository is designed to help you enhance your skills in smart contract development and security. It consists of two main sections: *Hacking Challenges* and *Gas Optimization Challenges*.
 
+### Getting Started
+
+- Install [Foundry](https://github.com/foundry-rs/foundry) or Run `foundryup` to initialize the repository.
+- Run `forge install` to install the required dependencies. 
+
+You can now see the result of your gas-optimization exercises by running the following command: `forge test`.
+
 ## Challenges
 
 ### Hacking Challenges
