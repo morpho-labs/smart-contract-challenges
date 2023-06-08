@@ -6,7 +6,8 @@ The objective of these challenges is not to encourage participants to try random
 
 ## Prerequisites
 
-Have [Foundry](https://book.getfoundry.sh/getting-started/installation) installed.
+Have [Foundry](https://book.getfoundry.sh/getting-started/installation) installed. 
+Run `forge install` to install the required dependencies. 
 
 ## Instructions
 
