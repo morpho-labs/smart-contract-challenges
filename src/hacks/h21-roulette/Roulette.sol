@@ -37,7 +37,7 @@ contract Roulette {
         require(endSpinBlockNumber > 1, "No spin recorded for the user");
         require(block.number > endSpinBlockNumber, "Spin not completed");
 
-        spinBlockNumber[msg.sender] == 0;
+        spinBlockNumber[msg.sender] = 0;
 
         if (uint256(keccak256(abi.encode(msg.sender, blockhash(endSpinBlockNumber)))) % 2 == 0) {
             emit Win(msg.sender);
