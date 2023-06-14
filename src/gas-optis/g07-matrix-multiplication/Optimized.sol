@@ -57,8 +57,8 @@ contract MatrixMultiplication is IMatrixMultiplication {
         returns (uint256 result)
     {
         uint256 size = matrixB.length;
-        unchecked {
-            for (uint256 k = 0; k < size; k++) {
+        for (uint256 k = 0; k < size; k++) {
+            unchecked {
                 result += _matrixA[i][k] * matrixB[k][j];
             }
         }

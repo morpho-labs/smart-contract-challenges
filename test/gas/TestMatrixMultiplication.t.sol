@@ -9,7 +9,7 @@ import {IMatrixMultiplication} from "src/gas-optis/g07-matrix-multiplication/Com
 import {MatrixMultiplication as Reference} from "src/gas-optis/g07-matrix-multiplication/Reference.sol";
 import {MatrixMultiplication as Optimized} from "src/gas-optis/g07-matrix-multiplication/Optimized.sol";
 
-contract TestSolver is Test, Utils {
+contract TestMatrixMultiplication is Test, Utils {
     IMatrixMultiplication ref;
     IMatrixMultiplication opti;
 
@@ -24,6 +24,8 @@ contract TestSolver is Test, Utils {
         opti.setMatrixA(matrixA);
         uint256[][] memory refResult = ref.matrixMul(matrixB);
         uint256[][] memory optiResult = opti.matrixMul(matrixB);
+        assertEq(refResult.length, optiResult.length, "invalid dimensions");
+        assertEq(refResult[0].length, optiResult[0].length, "invalid dimensions");
         for (uint256 i = 0; i < m; i++) {
             for (uint256 j = 0; j < n; j++) {
                 assertEq(refResult[i][j], optiResult[i][j]);
@@ -62,7 +64,7 @@ contract TestSolver is Test, Utils {
         refGas += staticcallGasUsage(address(ref), data);
         optiGas += staticcallGasUsage(address(opti), data);
 
-        printGasResult(refGas, 110000, 106876, optiGas);
+        printGasResult(refGas, 325000, 317655, optiGas);
     }
 
     function _randomMatrix(bytes32 seed, uint256 m, uint256 n)
