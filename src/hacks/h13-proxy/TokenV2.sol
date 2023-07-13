@@ -60,6 +60,7 @@ contract TokenV2 is Ownable {
     function redeem(uint256 amount) external returns (bool) {
         require(balances[msg.sender] >= amount);
         balances[msg.sender] -= amount;
+        emit Redeem(msg.sender, amount);
         return true;
     }
 
